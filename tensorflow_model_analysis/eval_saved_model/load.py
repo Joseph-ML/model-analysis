@@ -90,10 +90,7 @@ class EvalSavedModel(eval_metrics_graph.EvalMetricsGraph):
         raise ValueError('additional_fetches should not contain "labels"')
     self._additional_fetches = additional_fetches
     self._blacklist_feature_fetches = blacklist_feature_fetches
-    if tags:
-      self._tags = tags
-    else:
-      self._tags = [constants.EVAL_TAG]
+    self._tags = tags or [constants.EVAL_TAG]
     super().__init__()
 
   def _check_version(self, version_node: types.TensorType):
@@ -225,10 +222,13 @@ class EvalSavedModel(eval_metrics_graph.EvalMetricsGraph):
 
       if self._include_default_metrics:
         metrics_map = graph_ref.load_metrics(signature_def, self._graph)
-        metric_ops = {}
-        for metric_name, ops in metrics_map.items():
-          metric_ops[metric_name] = (ops[encoding.VALUE_OP_SUFFIX],
-                                     ops[encoding.UPDATE_OP_SUFFIX])
+        metric_ops = {
+            metric_name: (
+                ops[encoding.VALUE_OP_SUFFIX],
+                ops[encoding.UPDATE_OP_SUFFIX],
+            )
+            for metric_name, ops in metrics_map.items()
+        }
         self.register_additional_metric_ops(metric_ops)
 
       # Make callable for predict_list. The callable for
@@ -270,22 +270,16 @@ class EvalSavedModel(eval_metrics_graph.EvalMetricsGraph):
     Returns:
       Tuple of features, predictions, labels dictionaries (or values).
     """
-    features = {}
-    for key, value in self._features_map.items():
-      features[key] = value
+    features = dict(self._features_map.items())
     # Unnest if it wasn't a dictionary to begin with.
     features = util.extract_tensor_maybe_dict(constants.FEATURES_NAME, features)
 
-    predictions = {}
-    for key, value in self._predictions_map.items():
-      predictions[key] = value
+    predictions = dict(self._predictions_map.items())
     # Unnest if it wasn't a dictionary to begin with.
     predictions = util.extract_tensor_maybe_dict(constants.PREDICTIONS_NAME,
                                                  predictions)
 
-    labels = {}
-    for key, value in self._labels_map.items():
-      labels[key] = value
+    labels = dict(self._labels_map.items())
     # Unnest if it wasn't a dictionary to begin with.
     labels = util.extract_tensor_maybe_dict(constants.LABELS_NAME, labels)
 
@@ -327,11 +321,7 @@ class EvalSavedModel(eval_metrics_graph.EvalMetricsGraph):
         labels returned after feeding the inputs.
     """
     if isinstance(inputs, dict):
-      input_args = []
-      # Only add values for keys that are in the input map (in order).
-      for key in self._input_map:
-        if key in inputs:
-          input_args.append(inputs[key])
+      input_args = [inputs[key] for key in self._input_map if key in inputs]
     else:
       input_args = [inputs]
 
@@ -354,10 +344,10 @@ class EvalSavedModel(eval_metrics_graph.EvalMetricsGraph):
         # TODO(cyfoo): Optimise this.
         split_fetches = {}
         for group, tensors in all_fetches.items():
-          split_tensors = {}
-          for key in tensors:
-            if not np.isscalar(tensors[key]):
-              split_tensors[key] = util.split_tensor_value(tensors[key])
+          split_tensors = {
+              key: util.split_tensor_value(tensors[key])
+              for key in tensors if not np.isscalar(tensors[key])
+          }
           split_fetches[group] = split_tensors
 
         if (not isinstance(input_refs, np.ndarray) or input_refs.ndim != 1 or
@@ -381,9 +371,10 @@ class EvalSavedModel(eval_metrics_graph.EvalMetricsGraph):
                 'inputs: {}'.format(input_ref, len(inputs), inputs))
           values = {}
           for group, split_tensors in split_fetches.items():
-            tensor_values = {}
-            for key, split_value in split_tensors.items():
-              tensor_values[key] = split_value[i]
+            tensor_values = {
+                key: split_value[i]
+                for key, split_value in split_tensors.items()
+            }
             values[group] = util.extract_tensor_maybe_dict(group, tensor_values)
 
           result.append(FetchedTensorValues(input_ref=input_ref, values=values))
@@ -403,12 +394,9 @@ class EvalSavedModel(eval_metrics_graph.EvalMetricsGraph):
     def fpl_dict(fetched: FetchedTensorValues,
                  group: str) -> types.DictOfFetchedTensorValues:
       native = fetched.values[group]
-      wrapped = {}
       if not isinstance(native, dict):
         native = {util.default_dict_key(group): native}
-      for key in native:
-        wrapped[key] = {encoding.NODE_SUFFIX: native[key]}
-      return wrapped
+      return {key: {encoding.NODE_SUFFIX: native[key]} for key in native}
 
     fpls = []
     for fetched in fetched_values:

@@ -106,10 +106,7 @@ class NdcgMetricCombineFn(beam.CombineFn):
     ]
     dcg = self._calculate_dcg_at_k(max_rank, ranked_values)
     optimal_dcg = self._calculate_dcg_at_k(max_rank, optimal_values)
-    if optimal_dcg > 0:
-      return dcg / optimal_dcg
-    else:
-      return 0
+    return dcg / optimal_dcg if optimal_dcg > 0 else 0
 
   def _new_ndcg_dict(self):
     return dict.fromkeys(self._at_vals, 0)
@@ -127,11 +124,10 @@ class NdcgMetricCombineFn(beam.CombineFn):
                 query_fpl: query_types.QueryFPL) -> _State:
     weight = 1.0
     if self._weight_key:
-      weights = [
+      if weights := [
           float(_get_feature_value(fpl, self._weight_key))
           for fpl in query_fpl.fpls
-      ]
-      if weights:
+      ]:
         if min(weights) != max(weights):
           raise ValueError('weights were not identical for all examples in the '
                            'query. query_id was: %s, weights were: %s' %

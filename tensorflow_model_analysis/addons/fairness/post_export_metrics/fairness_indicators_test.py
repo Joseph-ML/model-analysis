@@ -61,9 +61,7 @@ class FairnessIndicatorsTest(testutil.TensorflowModelAnalysisTest):
                     custom_plots_check is not None or
                     custom_result_check is not None)
     serialized_examples = [ex.SerializeToString() for ex in examples]
-    slicing_specs = None
-    if slice_spec:
-      slicing_specs = [s.to_proto() for s in slice_spec]
+    slicing_specs = [s.to_proto() for s in slice_spec] if slice_spec else None
     eval_config = config_pb2.EvalConfig(slicing_specs=slicing_specs)
     eval_shared_model = self.createTestEvalSharedModel(
         eval_saved_model_path=eval_export_dir,
@@ -682,11 +680,7 @@ class FairnessIndicatorsTest(testutil.TensorflowModelAnalysisTest):
         output_metrics = metrics_for_slice_pb2.MetricsForSlice().metrics
         for slice_key, value in got:
           fairness_auc.populate_stats_and_pop(slice_key, value, output_metrics)
-        for key in (
-            metric_keys.FAIRNESS_AUC + '/subgroup_auc/fixed_int',
-            metric_keys.FAIRNESS_AUC + '/bpsn_auc/fixed_int',
-            metric_keys.FAIRNESS_AUC + '/bnsp_auc/fixed_int',
-        ):
+        for key in (metric_keys.FAIRNESS_AUC + '/subgroup_auc/fixed_int', f'{metric_keys.FAIRNESS_AUC}/bpsn_auc/fixed_int', metric_keys.FAIRNESS_AUC + '/bnsp_auc/fixed_int'):
           self.assertProtoEquals(
               """
               bounded_value {

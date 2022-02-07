@@ -883,9 +883,9 @@ class EvaluateTest(testutil.TensorflowModelAnalysisTest,
         expected_metrics[''] = {'loss': True}
         if add_custom_metrics:
           expected_metrics['']['custom'] = True
-      for class_id in expected_metrics:
+      for class_id, value in expected_metrics.items():
         self.assertIn(class_id, got_metrics)
-        for k in expected_metrics[class_id]:
+        for k in value:
           self.assertIn(k, got_metrics[class_id])
 
     # TODO(b/173657964): assert exception for the missing baseline but non
@@ -902,10 +902,10 @@ class EvaluateTest(testutil.TensorflowModelAnalysisTest,
   def testRunModelAnalysisWithKerasMultiOutputModel(self):
 
     def _build_keras_model(eval_config, export_name='export_dir'):
-      layers_per_output = {}
-      for output_name in ('output_1', 'output_2'):
-        layers_per_output[output_name] = tf.keras.layers.Input(
-            shape=(1,), name=output_name)
+      layers_per_output = {
+          output_name: tf.keras.layers.Input(shape=(1, ), name=output_name)
+          for output_name in ('output_1', 'output_2')
+      }
       model = tf.keras.models.Model(layers_per_output, layers_per_output)
       model.compile(loss=tf.keras.losses.categorical_crossentropy)
       model_location = os.path.join(self._getTempDir(), export_name)
@@ -1160,10 +1160,10 @@ class EvaluateTest(testutil.TensorflowModelAnalysisTest,
     validations_file = os.path.join(output_path,
                                     f'{constants.VALIDATIONS_KEY}.tfrecord')
     self.assertTrue(os.path.exists(validations_file))
-    validation_records = []
-    for record in tf.compat.v1.python_io.tf_record_iterator(validations_file):
-      validation_records.append(
-          validation_result_pb2.ValidationResult.FromString(record))
+    validation_records = [
+        validation_result_pb2.ValidationResult.FromString(record)
+        for record in tf.compat.v1.python_io.tf_record_iterator(validations_file)
+    ]
     self.assertLen(validation_records, 1)
     self.assertTrue(validation_records[0].validation_ok)
 
@@ -1189,9 +1189,9 @@ class EvaluateTest(testutil.TensorflowModelAnalysisTest,
     }
     if _TFR_IMPORTED:
       expected_metrics['']['mrr_metric'] = True
-    for group in expected_metrics:
+    for group, value in expected_metrics.items():
       self.assertIn(group, got_metrics)
-      for k in expected_metrics[group]:
+      for k in value:
         self.assertIn(k, got_metrics[group])
 
   def testRunModelAnalysisWithLegacyQueryExtractor(self):

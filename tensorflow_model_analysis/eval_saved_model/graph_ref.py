@@ -73,7 +73,7 @@ def extract_signature_inputs_or_outputs_with_prefix(
   matched_prefix = False
   result = {}
   for k, v in signature_inputs_or_outputs.items():
-    if k.startswith(prefix + '/'):
+    if k.startswith(f'{prefix}/'):
       key = k[len(prefix) + 1:]
     elif k.startswith(prefix):
       if k == prefix:
@@ -305,10 +305,10 @@ def load_metrics(
   for k, v in metrics.items():
     node = tf.compat.v1.saved_model.utils.get_tensor_from_tensor_info(v, graph)
 
-    if k.endswith('/' + constants.METRIC_VALUE_SUFFIX):
+    if k.endswith(f'/{constants.METRIC_VALUE_SUFFIX}'):
       key = k[:-len(constants.METRIC_VALUE_SUFFIX) - 1]
       metrics_map[key][encoding.VALUE_OP_SUFFIX] = node
-    elif k.endswith('/' + constants.METRIC_UPDATE_SUFFIX):
+    elif k.endswith(f'/{constants.METRIC_UPDATE_SUFFIX}'):
       key = k[:-len(constants.METRIC_UPDATE_SUFFIX) - 1]
       metrics_map[key][encoding.UPDATE_OP_SUFFIX] = node
     else:
@@ -378,14 +378,14 @@ def get_node_map(
           getattr(collection_def, collection_def.WhichOneof('kind')).value)
   keys = meta_graph_def.collection_def[encoding.with_suffix(
       prefix, encoding.KEY_SUFFIX)].bytes_list.value
-  if not all([len(node_list) == len(keys) for node_list in node_lists]):
+  if any(len(node_list) != len(keys) for node_list in node_lists):
     raise ValueError('length of each node_list should match length of keys. '
                      'prefix was %s, node_lists were %s, keys was %s' %
                      (prefix, node_lists, keys))
-  result = {}
-  for key, elems in zip(keys, zip(*node_lists)):
-    result[encoding.decode_key(key)] = dict(zip(node_suffixes, elems))
-  return result
+  return {
+      encoding.decode_key(key): dict(zip(node_suffixes, elems))
+      for key, elems in zip(keys, zip(*node_lists))
+  }
 
 
 def get_node_map_in_graph(
@@ -408,12 +408,9 @@ def get_node_map_in_graph(
     the actual nodes in the graph.
   """
   node_map = get_node_map(meta_graph_def, prefix, node_suffixes)
-  result = {}
-  for key, elems in node_map.items():
-    result[key] = {
+  return {key: {
         k: encoding.decode_tensor_node(graph, n) for k, n in elems.items()
-    }
-  return result
+    } for key, elems in node_map.items()}
 
 
 def get_node_wrapped_tensor_info(meta_graph_def: meta_graph_pb2.MetaGraphDef,

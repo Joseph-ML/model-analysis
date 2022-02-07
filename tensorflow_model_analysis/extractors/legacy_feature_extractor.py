@@ -82,7 +82,7 @@ def _AugmentExtracts(data: Dict[str, Any], prefix: str, excludes: List[bytes],
       extracts[col_name] = types.MaterializedColumn(
           name=col_name, value=val.values)
 
-    elif isinstance(val, np.ndarray) or isinstance(val, list):
+    elif isinstance(val, (np.ndarray, list)):
       # Only support first dim for now
       val = val[0] if len(val) > 0 else []  # pylint: disable=g-explicit-length-test
       extracts[col_name] = types.MaterializedColumn(name=col_name, value=val)
@@ -112,15 +112,15 @@ def _ParseExample(extracts: types.Extracts,
       key = util.compound_key(['features', name])
       value = example.features.feature[name]
       if value.HasField('bytes_list'):
-        values = list(v for v in value.bytes_list.value)
+        values = list(value.bytes_list.value)
       elif value.HasField('float_list'):
-        values = list(v for v in value.float_list.value)
+        values = list(value.float_list.value)
       elif value.HasField('int64_list'):
-        values = list(v for v in value.int64_list.value)
-      if materialize_columns:
-        extracts[key] = types.MaterializedColumn(name=key, value=values)
-      if name not in features:
-        features[name] = {encoding.NODE_SUFFIX: np.array([values])}
+        values = list(value.int64_list.value)
+    if materialize_columns:
+      extracts[key] = types.MaterializedColumn(name=key, value=values)
+    if name not in features:
+      features[name] = {encoding.NODE_SUFFIX: np.array([values])}
 
 
 def _MaterializeFeatures(

@@ -131,9 +131,7 @@ def _default_eval_config(eval_shared_models: List[types.EvalSharedModel],
             name=shared_model.model_name,
             example_weight_key=example_weight_key,
             example_weight_keys=example_weight_keys))
-  slicing_specs = None
-  if slice_spec:
-    slicing_specs = [s.to_proto() for s in slice_spec]
+  slicing_specs = [s.to_proto() for s in slice_spec] if slice_spec else None
   options = config_pb2.Options()
   options.compute_confidence_intervals.value = compute_confidence_intervals
   options.min_slice_size.value = min_slice_size
@@ -147,12 +145,11 @@ def _model_types(
     eval_shared_model: Optional[types.MaybeMultipleEvalSharedModels]
 ) -> Optional[Set[str]]:
   """Returns model types associated with given EvalSharedModels."""
-  eval_shared_models = model_util.verify_and_update_eval_shared_models(
-      eval_shared_model)
-  if not eval_shared_models:
-    return None
+  if eval_shared_models := model_util.verify_and_update_eval_shared_models(
+      eval_shared_model):
+    return {m.model_type for m in eval_shared_models}
   else:
-    return set([m.model_type for m in eval_shared_models])
+    return None
 
 
 def _update_eval_config_with_defaults(
@@ -176,9 +173,8 @@ def load_metrics(
     output_path: str,
     output_file_format: str = 'tfrecord') -> Iterator[MetricsForSlice]:
   """Read and deserialize the MetricsForSlice records."""
-  for m in metrics_plots_and_validations_writer.load_and_deserialize_metrics(
-      output_path, output_file_format):
-    yield m
+  yield from metrics_plots_and_validations_writer.load_and_deserialize_metrics(
+      output_path, output_file_format)
 
 
 PlotsForSlice = metrics_for_slice_pb2.PlotsForSlice
@@ -187,9 +183,8 @@ PlotsForSlice = metrics_for_slice_pb2.PlotsForSlice
 def load_plots(output_path: str,
                output_file_format: str = 'tfrecord') -> Iterator[PlotsForSlice]:
   """Read and deserialize the PlotsForSlice records."""
-  for p in metrics_plots_and_validations_writer.load_and_deserialize_plots(
-      output_path, output_file_format):
-    yield p
+  yield from metrics_plots_and_validations_writer.load_and_deserialize_plots(
+      output_path, output_file_format)
 
 
 AttributionsForSlice = metrics_for_slice_pb2.AttributionsForSlice
@@ -199,10 +194,9 @@ def load_attributions(
     output_path: str,
     output_file_format: str = 'tfrecord') -> Iterator[AttributionsForSlice]:
   """Read and deserialize the AttributionsForSlice records."""
-  for a in (
+  yield from (
       metrics_plots_and_validations_writer.load_and_deserialize_attributions(
-          output_path, output_file_format)):
-    yield a
+          output_path, output_file_format))
 
 
 # Define types here to avoid type errors between OSS and internal code.
@@ -260,10 +254,10 @@ def load_eval_results(
       model_names = list(model_locations.keys())
     else:
       model_names = [model_name]
-    for model_name in model_names:
-      results.append(
-          load_eval_result(
-              output_path, output_file_format, model_name=model_name))
+    results.extend(
+        load_eval_result(
+            output_path, output_file_format, model_name=model_name)
+        for model_name in model_names)
   return make_eval_results(results, mode)
 
 
@@ -643,44 +637,28 @@ def default_evaluators(  # pylint: disable=invalid-name
     eval_config = _update_eval_config_with_defaults(eval_config,
                                                     eval_shared_model)
     disabled_outputs = eval_config.options.disabled_outputs.values
-    if (_model_types(eval_shared_model) == set([constants.TF_LITE]) or
-        _model_types(eval_shared_model) == set([constants.TF_JS])):
-      # no in-graph metrics present when tflite or tfjs is used.
-      if eval_shared_model:
-        if isinstance(eval_shared_model, dict):
-          eval_shared_model = {
-              k: v._replace(include_default_metrics=False)
-              for k, v in eval_shared_model.items()
-          }
-        elif isinstance(eval_shared_model, list):
-          eval_shared_model = [
-              v._replace(include_default_metrics=False)
-              for v in eval_shared_model
-          ]
-        else:
-          eval_shared_model = eval_shared_model._replace(
-              include_default_metrics=False)
+    if (_model_types(eval_shared_model) in [
+        set([constants.TF_LITE]),
+        set([constants.TF_JS])
+    ] and eval_shared_model):
+      if isinstance(eval_shared_model, dict):
+        eval_shared_model = {
+            k: v._replace(include_default_metrics=False)
+            for k, v in eval_shared_model.items()
+        }
+      elif isinstance(eval_shared_model, list):
+        eval_shared_model = [
+            v._replace(include_default_metrics=False)
+            for v in eval_shared_model
+        ]
+      else:
+        eval_shared_model = eval_shared_model._replace(
+            include_default_metrics=False)
   if (constants.METRICS_KEY in disabled_outputs and
       constants.PLOTS_KEY in disabled_outputs and
       constants.ATTRIBUTIONS_KEY in disabled_outputs):
     return []
-  if _is_legacy_eval(config_version, eval_shared_model, eval_config):
-    # Backwards compatibility for previous add_metrics_callbacks implementation.
-    if eval_config is not None:
-      if eval_config.options.HasField('compute_confidence_intervals'):
-        compute_confidence_intervals = (
-            eval_config.options.compute_confidence_intervals.value)
-      if eval_config.options.HasField('min_slice_size'):
-        min_slice_size = eval_config.options.min_slice_size.value
-    return [
-        legacy_metrics_and_plots_evaluator.MetricsAndPlotsEvaluator(
-            eval_shared_model,
-            compute_confidence_intervals=compute_confidence_intervals,
-            min_slice_size=min_slice_size,
-            serialize=serialize,
-            random_seed_for_testing=random_seed_for_testing)
-    ]
-  else:
+  if not _is_legacy_eval(config_version, eval_shared_model, eval_config):
     return [
         metrics_plots_and_validations_evaluator
         .MetricsPlotsAndValidationsEvaluator(
@@ -690,6 +668,21 @@ def default_evaluators(  # pylint: disable=invalid-name
             random_seed_for_testing=random_seed_for_testing,
             tensor_adapter_config=tensor_adapter_config)
     ]
+  # Backwards compatibility for previous add_metrics_callbacks implementation.
+  if eval_config is not None:
+    if eval_config.options.HasField('compute_confidence_intervals'):
+      compute_confidence_intervals = (
+          eval_config.options.compute_confidence_intervals.value)
+    if eval_config.options.HasField('min_slice_size'):
+      min_slice_size = eval_config.options.min_slice_size.value
+  return [
+      legacy_metrics_and_plots_evaluator.MetricsAndPlotsEvaluator(
+          eval_shared_model,
+          compute_confidence_intervals=compute_confidence_intervals,
+          min_slice_size=min_slice_size,
+          serialize=serialize,
+          random_seed_for_testing=random_seed_for_testing)
+  ]
 
 
 def default_writers(
@@ -874,8 +867,7 @@ class _CombineEvaluationDictionariesFn(beam.CombineFn):
 
   def _merge(self, accumulator: Dict[str, Any], output_dict: Dict[str,
                                                                   Any]) -> None:
-    intersection = set(accumulator) & set(output_dict)
-    if intersection:
+    if intersection := set(accumulator) & set(output_dict):
       raise ValueError(
           'Dictionaries generated by different evaluators should have '
           'different keys, but keys %s appeared in the output of multiple '
@@ -1224,7 +1216,17 @@ def run_model_analysis(
 
   tensor_adapter_config = None
   with beam.Pipeline(options=pipeline_options) as p:
-    if file_format == 'tfrecords':
+    if file_format == 'text':
+      tfxio = raw_tf_record.RawBeamRecordTFXIO(
+          physical_format='csv',
+          raw_record_column_name=constants.ARROW_INPUT_COLUMN,
+          telemetry_descriptors=['StandaloneTFMA'])
+      data = (
+          p
+          | 'ReadFromText' >> beam.io.textio.ReadFromText(
+              data_location, coder=beam.coders.BytesCoder())
+          | 'ConvertToArrow' >> tfxio.BeamSource())
+    elif file_format == 'tfrecords':
       if is_batched_input(eval_shared_model, eval_config, config_version):
         if is_legacy_estimator(eval_shared_model):
           tfxio = raw_tf_record.RawTfRecordTFXIO(
@@ -1246,16 +1248,6 @@ def run_model_analysis(
         data = p | 'ReadFromTFRecord' >> beam.io.ReadFromTFRecord(
             file_pattern=data_location,
             compression_type=beam.io.filesystem.CompressionTypes.AUTO)
-    elif file_format == 'text':
-      tfxio = raw_tf_record.RawBeamRecordTFXIO(
-          physical_format='csv',
-          raw_record_column_name=constants.ARROW_INPUT_COLUMN,
-          telemetry_descriptors=['StandaloneTFMA'])
-      data = (
-          p
-          | 'ReadFromText' >> beam.io.textio.ReadFromText(
-              data_location, coder=beam.coders.BytesCoder())
-          | 'ConvertToArrow' >> tfxio.BeamSource())
     else:
       raise ValueError('unknown file_format: {}'.format(file_format))
 
@@ -1275,15 +1267,15 @@ def run_model_analysis(
             tensor_adapter_config=tensor_adapter_config,
             schema=schema,
             config_version=config_version))
-    # pylint: enable=no-value-for-parameter
+      # pylint: enable=no-value-for-parameter
 
   if len(eval_config.model_specs) <= 1:
     return load_eval_result(output_path)
-  else:
-    results = []
-    for spec in eval_config.model_specs:
-      results.append(load_eval_result(output_path, model_name=spec.name))
-    return view_types.EvalResults(results, constants.MODEL_CENTRIC_MODE)
+  results = [
+      load_eval_result(output_path, model_name=spec.name)
+      for spec in eval_config.model_specs
+  ]
+  return view_types.EvalResults(results, constants.MODEL_CENTRIC_MODE)
 
 
 def single_model_analysis(
@@ -1344,9 +1336,10 @@ def multiple_model_analysis(model_locations: List[str], data_location: str,
     A tfma.EvalResults containing all the evaluation results with the same order
     as model_locations.
   """
-  results = []
-  for m in model_locations:
-    results.append(single_model_analysis(m, data_location, **kwargs))
+  results = [
+      single_model_analysis(m, data_location, **kwargs)
+      for m in model_locations
+  ]
   return view_types.EvalResults(results, constants.MODEL_CENTRIC_MODE)
 
 
@@ -1364,9 +1357,10 @@ def multiple_data_analysis(model_location: str, data_locations: List[str],
     A tfma.EvalResults containing all the evaluation results with the same order
     as data_locations.
   """
-  results = []
-  for d in data_locations:
-    results.append(single_model_analysis(model_location, d, **kwargs))
+  results = [
+      single_model_analysis(model_location, d, **kwargs)
+      for d in data_locations
+  ]
   return view_types.EvalResults(results, constants.DATA_CENTRIC_MODE)
 
 

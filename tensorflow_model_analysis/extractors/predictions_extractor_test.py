@@ -358,7 +358,7 @@ class PredictionsExtractorTest(testutil.TensorflowModelAnalysisTest):
             for pred in item[constants.PREDICTIONS_KEY]:
               for output_name in ('chinese_head', 'english_head', 'other_head'):
                 for pred_key in ('logistic', 'probabilities', 'all_classes'):
-                  self.assertIn(output_name + '/' + pred_key, pred)
+                  self.assertIn(f'{output_name}/{pred_key}', pred)
 
         except AssertionError as err:
           raise util.BeamAssertException(err)
@@ -467,8 +467,7 @@ class PredictionsExtractorTest(testutil.TensorflowModelAnalysisTest):
                 for output_name in ('chinese_head', 'english_head',
                                     'other_head'):
                   for pred_key in ('logistic', 'probabilities', 'all_classes'):
-                    self.assertIn(output_name + '/' + pred_key,
-                                  pred[model_name])
+                    self.assertIn(f'{output_name}/{pred_key}', pred[model_name])
 
         except AssertionError as err:
           raise util.BeamAssertException(err)

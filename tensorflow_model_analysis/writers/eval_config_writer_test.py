@@ -51,9 +51,7 @@ class EvalConfigWriterTest(testutil.TensorflowModelAnalysisTest):
         example_weight_metric_key='key',
         compute_confidence_intervals=False,
         k_anonymization_count=1)
-    final_dict = {}
-    final_dict['tfma_version'] = tfma_version.VERSION
-    final_dict['eval_config'] = old_config
+    final_dict = {'tfma_version': tfma_version.VERSION, 'eval_config': old_config}
     with tf.io.TFRecordWriter(os.path.join(output_path, 'eval_config')) as w:
       w.write(pickle.dumps(final_dict))
     got_eval_config, got_data_location, _, got_model_locations = (

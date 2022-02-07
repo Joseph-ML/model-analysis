@@ -106,10 +106,7 @@ class _JackknifeSampleCombineFn(confidence_intervals_util.SampleCombineFn):
         pseudo_values = []
         total = None
         for sample_value in accumulator.metric_samples[key]:
-          if total is None:
-            total = sample_value
-          else:
-            total = total + sample_value
+          total = sample_value if total is None else total + sample_value
           pseudo_values.append(point_estimate * num_buckets - sample_value *
                                (num_buckets - 1))
         _, std_dev = confidence_intervals_util.mean_and_std(

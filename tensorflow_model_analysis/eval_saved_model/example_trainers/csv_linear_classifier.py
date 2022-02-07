@@ -41,8 +41,7 @@ def simple_csv_linear_classifier(export_path, eval_export_path):
     row_columns = tf.expand_dims(rows_string_tensor, -1)
     columns = tf.io.decode_csv(
         records=row_columns, record_defaults=csv_column_defaults)
-    features = dict(zip(csv_columns, columns))
-    return features
+    return dict(zip(csv_columns, columns))
 
   def eval_input_receiver_fn():
     """Eval input receiver function."""

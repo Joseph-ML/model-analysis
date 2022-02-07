@@ -71,19 +71,18 @@ class _TFJSPredictionDoFn(model_util.BatchReducibleBatchedDoFnWithModels):
     for model_name, model_path in self._src_model_paths.items():
       with tf.io.gfile.GFile(os.path.join(model_path, _MODEL_JSON)) as f:
         model_json = json.load(f)
-        if ('userDefinedMetadata' in model_json and
-            'signature' in model_json['userDefinedMetadata']):
-          model_signature = model_json['userDefinedMetadata']['signature']
-        else:
-          model_signature = model_json['signature']
-        model_inputs = {}
-        for k, v in model_signature['inputs'].items():
-          model_inputs[k] = [int(i['size']) for i in v['tensorShape']['dim']]
-
-        model_outputs = {}
-        for k, v in model_signature['outputs'].items():
-          model_outputs[k] = [int(i['size']) for i in v['tensorShape']['dim']]
-
+        model_signature = (model_json['userDefinedMetadata']['signature'] if
+                           ('userDefinedMetadata' in model_json
+                            and 'signature' in model_json['userDefinedMetadata'])
+                           else model_json['signature'])
+        model_inputs = {
+            k: [int(i['size']) for i in v['tensorShape']['dim']]
+            for k, v in model_signature['inputs'].items()
+        }
+        model_outputs = {
+            k: [int(i['size']) for i in v['tensorShape']['dim']]
+            for k, v in model_signature['outputs'].items()
+        }
       cur_model_path = os.path.join(base_model_path, model_name)
       self._model_properties[model_name] = {
           'inputs': model_inputs,
@@ -160,9 +159,11 @@ class _TFJSPredictionDoFn(model_util.BatchReducibleBatchedDoFnWithModels):
                                      _OUTPUTS_SUBDIR, cur_subdir)
       tf.io.gfile.makedirs(cur_output_path)
       inference_command = [
-          self._binary_path, '--model_path=' +
-          os.path.join(self._model_properties[model_name]['path'], _MODEL_JSON),
-          '--inputs_dir=' + cur_input_path, '--outputs_dir=' + cur_output_path
+          self._binary_path,
+          '--model_path=' + os.path.join(
+              self._model_properties[model_name]['path'], _MODEL_JSON),
+          f'--inputs_dir={cur_input_path}',
+          f'--outputs_dir={cur_output_path}',
       ]
 
       popen = subprocess.Popen(

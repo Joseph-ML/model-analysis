@@ -199,12 +199,7 @@ def _dense_concat_rows(arrays: List[np.ndarray]) -> np.ndarray:
     raise ValueError('arrays must be a non-empty list.')
 
   shape_max = np.amax(np.array([a.shape for a in arrays]), axis=0)
-  if arrays[0].dtype == np.object:
-    # Assume if the dtype is object then the array contains strings.
-    padding_value = ''
-  else:
-    padding_value = arrays[0].dtype.type()
-
+  padding_value = '' if arrays[0].dtype == np.object else arrays[0].dtype.type()
   padded_arrays = []
   for array in arrays:
     if array.shape[0] != 1:
@@ -369,7 +364,7 @@ def _sparse_slice_rows(
   offset = 0
   dense_shape = [1] + original_dense_shape[1:]
 
-  for row in range(0, original_dense_shape[0]):
+  for row in range(original_dense_shape[0]):
     # Process each output row one at a time.
     indices = []
     values = []

@@ -52,7 +52,7 @@ class SubKey(
               class_id: Optional[int] = None,
               k: Optional[int] = None,
               top_k: Optional[int] = None):
-    if sum([0 if v is None else 1 for v in (class_id, k, top_k)]) > 1:
+    if sum(0 if v is None else 1 for v in (class_id, k, top_k)) > 1:
       raise ValueError('only one of class_id, k, or top_k should be used: '
                        'class_id={}, k={}, top_k={}'.format(class_id, k, top_k))
     if k is not None and k < 1:
@@ -101,15 +101,9 @@ class SubKey(
   @staticmethod
   def from_proto(pb: metrics_for_slice_pb2.SubKey) -> Optional['SubKey']:
     """Creates class from proto."""
-    class_id = None
-    if pb.HasField('class_id'):
-      class_id = pb.class_id.value
-    k = None
-    if pb.HasField('k'):
-      k = pb.k.value
-    top_k = None
-    if pb.HasField('top_k'):
-      top_k = pb.top_k.value
+    class_id = pb.class_id.value if pb.HasField('class_id') else None
+    k = pb.k.value if pb.HasField('k') else None
+    top_k = pb.top_k.value if pb.HasField('top_k') else None
     if class_id is None and k is None and top_k is None:
       return None
     else:
@@ -242,13 +236,12 @@ class MetricKey(
     if other is None:
       return False
     # Python3 does not allow comparison of NoneType, remove if present.
-    sub_key = self.sub_key if self.sub_key else ()
-    other_sub_key = other.sub_key if other.sub_key else ()
-    agg_type = self.aggregation_type if self.aggregation_type else ()
-    other_agg_type = other.aggregation_type if other.aggregation_type else ()
-    example_weighted = self.example_weighted if self.example_weighted else ()
-    other_example_weighted = (
-        other.example_weighted if other.example_weighted else ())
+    sub_key = self.sub_key or ()
+    other_sub_key = other.sub_key or ()
+    agg_type = self.aggregation_type or ()
+    other_agg_type = other.aggregation_type or ()
+    example_weighted = self.example_weighted or ()
+    other_example_weighted = other.example_weighted or ()
     is_diff = self.is_diff
     other_is_diff = other.is_diff
     # -4 for sub_key, aggregation_type, example_weighted, and is_diff
@@ -862,10 +855,7 @@ def FeaturePreprocessor(  # pylint: disable=invalid-name
     output_names: Optional output names. Only used if include_default_inputs is
       True. If unset all outputs will be included with the default inputs.
   """
-  if feature_keys:
-    include_features = {k: {} for k in feature_keys}
-  else:
-    include_features = {}
+  include_features = {k: {} for k in feature_keys} if feature_keys else {}
   return StandardMetricInputsPreprocessor(
       include_filter={constants.FEATURES_KEY: include_features},
       include_default_inputs=include_default_inputs,
@@ -890,10 +880,7 @@ def TransformedFeaturePreprocessor(  # pylint: disable=invalid-name
     output_names: Optional output names. Only used if include_default_inputs is
       True. If unset all outputs will be included with the default inputs.
   """
-  if feature_keys:
-    include_features = {k: {} for k in feature_keys}
-  else:
-    include_features = {}
+  include_features = {k: {} for k in feature_keys} if feature_keys else {}
   if model_names:
     include_features = {name: include_features for name in model_names}
   return StandardMetricInputsPreprocessor(
@@ -919,10 +906,7 @@ def AttributionPreprocessor(  # pylint: disable=invalid-name
     model_names: Optional model names (required for multi-model evaluations).
     output_names: Optional output names (required for multi-output evaluations).
   """
-  if feature_keys:
-    include_features = {k: {} for k in feature_keys}
-  else:
-    include_features = {}
+  include_features = {k: {} for k in feature_keys} if feature_keys else {}
   if output_names:
     include_features = {name: include_features for name in output_names}
   if model_names:

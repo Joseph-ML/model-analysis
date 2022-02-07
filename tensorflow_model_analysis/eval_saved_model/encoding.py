@@ -68,15 +68,14 @@ def encode_key(key: types.FPLKeyType) -> bytes:
   """
 
   if isinstance(key, tuple):
-    if not all(
-        isinstance(elem, bytes) or isinstance(elem, str) for elem in key):
+    if not all(isinstance(elem, (bytes, str)) for elem in key):
       raise TypeError('if key is tuple, all elements should be strings. '
                       'key was: %s' % key)
     utf8_keys = [tf.compat.as_bytes(elem) for elem in key]
     length_strs = [tf.compat.as_bytes('%d' % len(key)) for key in utf8_keys]
     return (_TUPLE_KEY_PREFIX + tf.compat.as_bytes('%d' % len(length_strs)) +
             b'$' + b'$'.join(length_strs) + b'$' + b'$'.join(utf8_keys))
-  elif isinstance(key, bytes) or isinstance(key, str):
+  elif isinstance(key, (bytes, str)):
     return b'$Bytes$' + tf.compat.as_bytes(key)
   else:
     raise TypeError('key has unrecognised type: type: %s, value %s' %

@@ -48,10 +48,7 @@ def mean_and_std(
   """
   total = None
   for value in values:
-    if total is None:
-      total = value
-    else:
-      total = total + value
+    total = value if total is None else total + value
   mean = total / len(values)
   squared_residual_total = None
   for value in values:

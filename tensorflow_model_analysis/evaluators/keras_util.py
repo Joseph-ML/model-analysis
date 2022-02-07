@@ -114,7 +114,7 @@ def _metric_keys(metrics: Iterable[tf.keras.metrics.Metric], model_name: str,
         # Remove this while loop after the last TF version with the issue is
         # no longer supported.
         name = metric.name
-        while name.startswith(output_name + '_'):
+        while name.startswith(f'{output_name}_'):
           name = name[len(output_name) + 1:]
         result.append(
             metric_types.MetricKey(
@@ -162,7 +162,7 @@ class _KerasCombiner(model_util.CombineFnWithModels):
     # outputs - e.g. weighted loss). For the actual computations, we will store
     # the inputs under the respective output indices (with '' having no inputs),
     # but store all the metric weights under output index 0.
-    self._output_names = sorted(set(key.output_name or '' for key in keys))
+    self._output_names = sorted({key.output_name or '' for key in keys})
     counts = collections.defaultdict(int)
     for key in keys:
       if key.output_name:
@@ -216,7 +216,7 @@ class _KerasCombiner(model_util.CombineFnWithModels):
     self._batch_size_beam_metric_dist.update(accumulator.len_inputs())
     self._total_input_byte_size_beam_metric_dist.update(
         accumulator.get_size_estimate())
-    for metric_index, metric in enumerate(self._metrics()):
+    for metric in self._metrics():
       metric.reset_states()
     self._update_state(accumulator)
     # For metrics stored with the model, the outputs get encoded in the

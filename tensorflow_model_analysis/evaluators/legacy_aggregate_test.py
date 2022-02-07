@@ -28,8 +28,9 @@ from tensorflow_model_analysis.evaluators import legacy_poisson_bootstrap as poi
 def create_test_input(predict_list, slice_list):
   results = []
   for entry in predict_list:
-    for slice_key in slice_list:
-      results.append((slice_key, {constants.INPUT_KEY: entry}))
+    results.extend((slice_key, {
+        constants.INPUT_KEY: entry
+    }) for slice_key in slice_list)
   return results
 
 
@@ -123,9 +124,7 @@ class AggregateTest(testutil.TensorflowModelAnalysisTest):
 
       def check_result(got):
         self.assertEqual(3, len(got), 'got: %s' % got)
-        slices = {}
-        for slice_key, metrics in got:
-          slices[slice_key] = metrics
+        slices = dict(got)
         overall_slice = ()
         english_slice = (('language', 'english'))
         chinese_slice = (('language', 'chinese'))
@@ -251,9 +250,7 @@ class AggregateTest(testutil.TensorflowModelAnalysisTest):
 
       def check_result(got):
         self.assertEqual(3, len(got), 'got: %s' % got)
-        slices = {}
-        for slice_key, metrics in got:
-          slices[slice_key] = metrics
+        slices = dict(got)
         check_overall_slice(slices)
         check_english_slice(slices)
         check_chinese_slice(slices)

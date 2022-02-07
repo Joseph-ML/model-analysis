@@ -99,9 +99,9 @@ class ExtractSliceKeysFn(beam.DoFn):
         features_dicts.append(transformed_features)
       else:
         # Search for slices in each model's transformed features output.
-        for spec in self._eval_config.model_specs:
-          if spec.name in transformed_features:
-            features_dicts.append(transformed_features[spec.name])
+        features_dicts.extend(transformed_features[spec.name]
+                              for spec in self._eval_config.model_specs
+                              if spec.name in transformed_features)
     # Search for slices first in transformed features (if any). If a match is
     # not found there then search in raw features.
     slice_keys = list(
@@ -128,9 +128,11 @@ class ExtractSliceKeysFn(beam.DoFn):
     if self._materialize:
       element_copy[constants.SLICE_KEYS_KEY] = types.MaterializedColumn(
           name=constants.SLICE_KEYS_KEY,
-          value=(list(
+          value=[
               slicer.stringify_slice_key(x).encode('utf-8')
-              for x in unique_slice_keys)))
+              for x in unique_slice_keys
+          ],
+      )
     return [element_copy]
 
 

@@ -366,7 +366,7 @@ def binary_confusion_matrices(
         if thresholds[-1] < 1.0:
           # If the last threshold < 1.0, then add a fence post at 1.0 + epsilon
           # othewise true negatives and true positives will be overcounted.
-          rebin_thresholds = rebin_thresholds + [1.0 + _EPSILON]
+          rebin_thresholds += [1.0 + _EPSILON]
         histogram = calibration_histogram.rebin(rebin_thresholds,
                                                 metrics[input_metric_key])
       matrices = _histogram_to_binary_confusion_matrices(thresholds, histogram)
@@ -588,13 +588,12 @@ class _BinaryConfusionMatrixCombiner(beam.CombineFn):
           else:
             fn += example_weights[i]
             fn_example = example_id
+        elif predictions[i] > threshold:
+          fp += example_weights[i]
+          fp_example = example_id
         else:
-          if predictions[i] > threshold:
-            fp += example_weights[i]
-            fp_example = example_id
-          else:
-            tn += example_weights[i]
-            tn_example = example_id
+          tn += example_weights[i]
+          tn_example = example_id
 
       result[threshold] = self._merge_entry(
           result, threshold,

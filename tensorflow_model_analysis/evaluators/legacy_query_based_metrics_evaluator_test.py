@@ -97,7 +97,7 @@ class QueryBasedMetricsEvaluatorTest(testutil.TensorflowModelAnalysisTest):
         fixed_string='query3',
         fixed_int=3)
 
-    serialized_examples = [
+    return [
         query1_example1.SerializeToString(),
         query1_example2.SerializeToString(),
         query2_example1.SerializeToString(),
@@ -105,8 +105,6 @@ class QueryBasedMetricsEvaluatorTest(testutil.TensorflowModelAnalysisTest):
         query2_example3.SerializeToString(),
         query3_example1.SerializeToString(),
     ]
-
-    return serialized_examples
 
   def testEvaluateQueryBasedMetrics(self):
     temp_eval_export_dir = self._getEvalExportDir()

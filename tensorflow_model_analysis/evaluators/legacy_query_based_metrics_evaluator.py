@@ -183,10 +183,9 @@ def ComputeQueryBasedMetrics(  # pylint: disable=invalid-name
   def merge_dictionaries(
       dictionaries: Tuple[Dict[str, Any], ...]) -> Dict[str, Any]:
     """Merge dictionaries in a tuple into a single dictionary."""
-    result = dict()
+    result = {}
     for d in dictionaries:
-      intersection = set(d.keys()) & set(result.keys())
-      if intersection:
+      if intersection := set(d.keys()) & set(result.keys()):
         raise ValueError('Overlapping keys found when merging dictionaries. '
                          'Intersection was: %s. Keys up to this point: %s '
                          'keys from next dictionary: %s' %

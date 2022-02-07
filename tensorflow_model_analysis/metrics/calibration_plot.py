@@ -70,11 +70,11 @@ def _find_label_domain(
   label_key = model_util.get_label_key(model_spec, output_name)
   if not label_key:
     return None, None
-  label_schema = None
-  for feature_schema in schema.feature:
-    if feature_schema.name == label_key:
-      label_schema = feature_schema
-      break
+  label_schema = next(
+      (feature_schema for feature_schema in schema.feature
+       if feature_schema.name == label_key),
+      None,
+  )
   if label_schema is None:
     return None, None
 

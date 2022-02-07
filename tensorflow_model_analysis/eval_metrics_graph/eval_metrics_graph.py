@@ -173,8 +173,7 @@ class EvalMetricsGraph:  # pytype: disable=ignored-metaclass
       for add_metrics_callback in add_metrics_callbacks:
         new_metric_ops = add_metrics_callback(features_dict, predictions_dict,
                                               labels_dict)
-        overlap = set(new_metric_ops.keys()) & set(metric_ops.keys())
-        if overlap:
+        if overlap := set(new_metric_ops.keys()) & set(metric_ops.keys()):
           raise ValueError('metric keys should not conflict, but an '
                            'earlier callback already added the metrics '
                            'named %s' % overlap)
@@ -245,18 +244,17 @@ class EvalMetricsGraph:  # pytype: disable=ignored-metaclass
       """Create a list of tuples describing a Tensor."""
       result = None
       if isinstance(tensor, tf.Operation):
-        result = [('Op', tensor.name)]
+        return [('Op', tensor.name)]
       elif isinstance(tensor, tf.SparseTensor):
-        result = [
+        return [
             ('SparseTensor.indices', tensor.indices.name),
             ('SparseTensor.values', tensor.values.name),
             ('SparseTensor.dense_shape', tensor.dense_shape.name),
         ]
       elif isinstance(tensor, tf.Tensor):
-        result = [('Tensor', tensor.name)]
+        return [('Tensor', tensor.name)]
       else:
-        result = [('Unknown', str(tensor))]
-      return result
+        return [('Unknown', str(tensor))]
 
     def flatten(target: List[List[Any]]) -> List[Any]:
       return list(itertools.chain.from_iterable(target))
@@ -288,22 +286,15 @@ class EvalMetricsGraph:  # pytype: disable=ignored-metaclass
     Returns:
       Tuple of features, predictions, labels dictionaries (or values).
     """
-    features = {}
-    for key, value in self._features_map.items():
-      features[key] = value
-
-    predictions = {}
-    for key, value in self._predictions_map.items():
-      predictions[key] = value
+    features = dict(self._features_map.items())
+    predictions = dict(self._predictions_map.items())
     # Unnest if it wasn't a dictionary to begin with.
     default_predictions_key = util.default_dict_key(
         eval_constants.PREDICTIONS_NAME)
     if list(predictions.keys()) == [default_predictions_key]:
       predictions = predictions[default_predictions_key]
 
-    labels = {}
-    for key, value in self._labels_map.items():
-      labels[key] = value
+    labels = dict(self._labels_map.items())
     # Unnest if it wasn't a dictionary to begin with.
     default_labels_key = util.default_dict_key(eval_constants.LABELS_NAME)
     if list(labels.keys()) == [default_labels_key]:
@@ -374,11 +365,8 @@ class EvalMetricsGraph:  # pytype: disable=ignored-metaclass
       A feed dict for feeding metric variables values to the placeholders
       constructed for setting the metric variable values to the fed values.
     """
-    result = {}
-    for node, value in zip(self._metric_variable_placeholders,
-                           metric_variable_values):
-      result[node] = value
-    return result
+    return dict(zip(self._metric_variable_placeholders,
+                           metric_variable_values))
 
   def _set_metric_variables(self, metric_variable_values: List[Any]) -> None:
     # Lock should be acquired before calling this function.

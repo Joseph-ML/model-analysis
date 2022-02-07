@@ -210,9 +210,8 @@ class UtilTest(testutil.TensorflowModelAnalysisTest):
                                   constants.MODEL_CENTRIC_MODE)
 
   def _makeEvalConfig(self):
-    eval_config = config_pb2.EvalConfig(
+    return config_pb2.EvalConfig(
         model_specs=[config_pb2.ModelSpec(example_weight_key='testing_key')])
-    return eval_config
 
   def testGetSlicingMetrics(self):
     self.assertEqual(

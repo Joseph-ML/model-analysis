@@ -103,20 +103,18 @@ def _should_suppress(obj, full_name):
   """
   # We need to special case the Text type because it resolves to str or unicode,
   # and not a symbol in the typing module.
-  if obj == str or obj == bytes:
+  if obj in [str, bytes]:
     return True
   if full_name and full_name.endswith('Text'):
     return True
 
   if full_name:
-    parts = full_name.split('.')
-    if parts:
+    if parts := full_name.split('.'):
       # We may want to keep __new__ and __init__ (but not if they are methods
       # on things that should be otherwise suppressed)
-      if parts[-1] != '__new__' and parts[-1] != '__init__':
-        # But all other magic methods should be hidden.
-        if parts[-1].startswith('__') and parts[-1].endswith('__'):
-          return True
+      if (parts[-1] not in ['__new__', '__init__']
+          and parts[-1].startswith('__') and parts[-1].endswith('__')):
+        return True
 
   if not hasattr(obj, '__module__'):
     obj = obj.__class__

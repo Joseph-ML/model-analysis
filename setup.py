@@ -197,11 +197,7 @@ class NPM(Command):
     pass
 
   def get_npm_name(self):
-    npm_name = 'npm'
-    if platform.system() == 'Windows':
-      npm_name = 'npm.cmd'
-
-    return npm_name
+    return 'npm.cmd' if platform.system() == 'Windows' else 'npm'
 
   def has_npm(self):
     npm_name = self.get_npm_name()

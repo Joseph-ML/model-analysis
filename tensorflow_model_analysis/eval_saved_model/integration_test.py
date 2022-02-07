@@ -517,12 +517,10 @@ class IntegrationTest(testutil.TensorflowModelAnalysisTest):
     _, prediction_dict, label_dict = (
         eval_saved_model.get_features_predictions_labels_dicts())
     with eval_saved_model.graph_as_default():
-      metric_ops = {}
       value_op, update_op = tf.compat.v1.metrics.mean_absolute_error(
           label_dict['english_head'][0][0],
           prediction_dict['english_head/probabilities'][0][1])
-      metric_ops['mean_absolute_error/english_head'] = (value_op, update_op)
-
+      metric_ops = {'mean_absolute_error/english_head': (value_op, update_op)}
       value_op, update_op = metrics.total(
           tf.shape(input=prediction_dict['english_head/logits'])[0])
       metric_ops['example_count/english_head'] = (value_op, update_op)
@@ -570,12 +568,10 @@ class IntegrationTest(testutil.TensorflowModelAnalysisTest):
     _, prediction_dict, label_dict = (
         eval_saved_model.get_features_predictions_labels_dicts())
     with eval_saved_model.graph_as_default():
-      metric_ops = {}
       value_op, update_op = tf.compat.v1.metrics.mean_absolute_error(
           label_dict['english_head'][0][0],
           prediction_dict['english_head/probabilities'][0][1])
-      metric_ops['mean_absolute_error/english_head'] = (value_op, update_op)
-
+      metric_ops = {'mean_absolute_error/english_head': (value_op, update_op)}
       value_op, update_op = metrics.total(
           tf.shape(input=prediction_dict['english_head/logits'])[0])
       metric_ops['example_count/english_head'] = (value_op, update_op)
@@ -617,11 +613,9 @@ class IntegrationTest(testutil.TensorflowModelAnalysisTest):
     _, prediction_dict, _ = (
         eval_saved_model.get_features_predictions_labels_dicts())
     with eval_saved_model.graph_as_default():
-      metric_ops = {}
       value_op, update_op = metrics.total(
           tf.shape(input=prediction_dict['english_head/logits'])[0])
-      metric_ops['example_count/english_head'] = (value_op, update_op)
-
+      metric_ops = {'example_count/english_head': (value_op, update_op)}
       eval_saved_model.register_additional_metric_ops(metric_ops)
 
     example1 = self._makeMultiHeadExample('english').SerializeToString()
@@ -667,11 +661,9 @@ class IntegrationTest(testutil.TensorflowModelAnalysisTest):
     _, prediction_dict, _ = (
         eval_saved_model.get_features_predictions_labels_dicts())
     with eval_saved_model.graph_as_default():
-      metric_ops = {}
       value_op, update_op = metrics.total(
           tf.shape(input=prediction_dict['english_head/logits'])[0])
-      metric_ops['example_count/english_head'] = (value_op, update_op)
-
+      metric_ops = {'example_count/english_head': (value_op, update_op)}
       eval_saved_model.register_additional_metric_ops(metric_ops)
 
     example1 = self._makeMultiHeadExample('english').SerializeToString()
@@ -706,11 +698,9 @@ class IntegrationTest(testutil.TensorflowModelAnalysisTest):
     _, prediction_dict, _ = (
         eval_saved_model.get_features_predictions_labels_dicts())
     with eval_saved_model.graph_as_default():
-      metric_ops = {}
       value_op, update_op = metrics.total(
           tf.shape(input=prediction_dict['english_head/logits'])[0])
-      metric_ops['example_count/english_head'] = (value_op, update_op)
-
+      metric_ops = {'example_count/english_head': (value_op, update_op)}
       eval_saved_model.register_additional_metric_ops(metric_ops)
 
     example1 = self._makeMultiHeadExample('english').SerializeToString()

@@ -910,9 +910,10 @@ class NonConfusionMatrixMetricsTest(testutil.TensorflowModelAnalysisTest,
     example5 = {'labels': [1.0], 'predictions': [0.5], 'example_weights': [0.0]}
 
     computation.combiner.setup()
-    combiner_inputs = []
-    for e in (example1, example2, example3, example4, example5):
-      combiner_inputs.append(metric_util.to_standard_metric_inputs(e))
+    combiner_inputs = [
+        metric_util.to_standard_metric_inputs(e)
+        for e in (example1, example2, example3, example4, example5)
+    ]
     acc1 = computation.combiner.create_accumulator()
     acc1 = computation.combiner.add_input(acc1, combiner_inputs[0])
     acc1 = computation.combiner.add_input(acc1, combiner_inputs[1])

@@ -168,10 +168,9 @@ class TFMAUnitTest(tfma_unit.TestCase):
 
     def add_metrics(features, predictions, labels):
       del features
-      metric_ops = {
+      return {
           'mae': tf.compat.v1.metrics.mean_absolute_error(labels, predictions),
       }
-      return metric_ops
 
     with beam.Pipeline() as pipeline:
       examples_pcollection = pipeline | 'Create' >> beam.Create(examples)

@@ -78,7 +78,7 @@ class _EvalSavedModelExporter(tf.estimator.Exporter):
              is_the_final_export: bool) -> bytes:
     del is_the_final_export
 
-    export_result = export.export_eval_savedmodel(
+    return export.export_eval_savedmodel(
         estimator=estimator,
         export_dir_base=export_path,
         eval_input_receiver_fn=self._eval_input_receiver_fn,
@@ -86,8 +86,6 @@ class _EvalSavedModelExporter(tf.estimator.Exporter):
         assets_extra=self._assets_extra,
         checkpoint_path=checkpoint_path,
     )
-
-    return export_result
 
 
 class FinalExporter(tf.estimator.Exporter):
@@ -271,15 +269,14 @@ def _remove_metrics(estimator: tf.estimator.Estimator,
   def wrapped_call_model_fn(unused_self, features, labels, mode, config):
     result = old_call_model_fn(features, labels, mode, config)
     if mode == tf.estimator.ModeKeys.EVAL:
-      filtered_eval_metric_ops = {}
-      for k, v in result.eval_metric_ops.items():
-        if isinstance(metrics_to_remove, collections.Iterable):
-          if k in metrics_to_remove:
-            continue
-        elif callable(metrics_to_remove):
-          if metrics_to_remove(k):
-            continue
-        filtered_eval_metric_ops[k] = v
+      filtered_eval_metric_ops = {
+          k: v
+          for k, v in result.eval_metric_ops.items()
+          if (not isinstance(metrics_to_remove, collections.Iterable)
+              or k not in metrics_to_remove) and (
+                  isinstance(metrics_to_remove, collections.Iterable)
+                  or not callable(metrics_to_remove) or not metrics_to_remove(k))
+      }
       result = result._replace(eval_metric_ops=filtered_eval_metric_ops)
     return result
 

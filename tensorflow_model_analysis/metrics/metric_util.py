@@ -95,9 +95,7 @@ def pad(arr: np.ndarray, last_dim: int, value: float) -> np.ndarray:
   """Pads the given array with value until last dim is of size last_dim."""
   if arr.shape[-1] == last_dim:
     return arr
-  pad_width = []
-  for _ in arr.shape[:-1]:
-    pad_width.append((0, 0))  # Don't pad inner dimensions
+  pad_width = [(0, 0) for _ in arr.shape[:-1]]
   pad_width.append((0, last_dim - arr.shape[-1]))  # Pad up to last_dim
   return np.pad(
       arr, pad_width=pad_width, mode='constant', constant_values=value)
@@ -694,8 +692,8 @@ def prepare_labels_and_predictions(
     predictions = util.to_numpy(predictions)
 
   if labels is not None:
-    if (isinstance(labels, types.SparseTensorValue) or
-        isinstance(labels, tf.compat.v1.SparseTensorValue)):
+    if isinstance(labels,
+                  (types.SparseTensorValue, tf.compat.v1.SparseTensorValue)):
       if predictions is None or predictions.size == 0:
         raise ValueError('predictions must also be used if labels are of type '
                          f'SparseTensorValue: labels={labels}')
@@ -737,10 +735,7 @@ def _string_labels_to_class_ids(label_vocabulary: Union[np.ndarray, List[str]],
   """Returns class ID for given string label using given classes or -1."""
 
   def lookup(label):
-    for i, c in enumerate(label_vocabulary):
-      if c == label:
-        return i
-    return -1
+    return next((i for i, c in enumerate(label_vocabulary) if c == label), -1)
 
   return np.array([lookup(l) for l in labels.flatten()]).reshape(labels.shape)
 

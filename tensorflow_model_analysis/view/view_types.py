@@ -197,10 +197,7 @@ class EvalResult(
       sub_key = str(metric_types.SubKey(class_id, k, top_k))
 
     def equals_slice_name(slice_key):
-      if not slice_key:
-        return not slice_name
-      else:
-        return slice_key == slice_name
+      return not slice_name if not slice_key else slice_key == slice_name
 
     for slicing_metric in self.slicing_metrics:
       slice_key = slicing_metric[0]
@@ -240,10 +237,7 @@ class EvalResult(
     for slicing_metric in self.slicing_metrics:
       slice_name = slicing_metric[0]
       metrics = slicing_metric[1][output_name][sub_key]
-      sliced_metrics[slice_name] = {
-          metric_name: metric_value
-          for metric_name, metric_value in metrics.items()
-      }
+      sliced_metrics[slice_name] = dict(metrics.items())
     return sliced_metrics  # pytype: disable=bad-return-type
 
   def get_metric_names(self) -> Sequence[str]:
@@ -294,10 +288,7 @@ class EvalResult(
       sub_key = ''
 
     def equals_slice_name(slice_key):
-      if not slice_key:
-        return not slice_name
-      else:
-        return slice_key == slice_name
+      return not slice_name if not slice_key else slice_key == slice_name
 
     for sliced_attributions in self.attributions:
       slice_key = sliced_attributions[0]
@@ -378,8 +369,7 @@ class EvalResults:
         constants.MODEL_CENTRIC_MODE,
     ]
     if mode not in supported_modes:
-      raise ValueError('Mode ' + mode + ' must be one of ' +
-                       str(supported_modes))
+      raise ValueError((f'Mode {mode} must be one of ' + str(supported_modes)))
 
     self._results = results
     self._mode = mode

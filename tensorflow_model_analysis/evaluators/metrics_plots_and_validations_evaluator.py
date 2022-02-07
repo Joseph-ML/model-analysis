@@ -407,11 +407,9 @@ def _AddCrossSliceMetrics(  # pylint: disable=invalid-name
                            Iterable[config_pb2.SlicingSpec]]
   ) -> bool:
     slice_key, _ = sliced_combiner_output
-    for slicing_spec in slicing_specs:
-      if slicer.SingleSliceSpec(
-          spec=slicing_spec).is_slice_applicable(slice_key):
-        return True
-    return False
+    return any(
+        slicer.SingleSliceSpec(spec=slicing_spec).is_slice_applicable(slice_key)
+        for slicing_spec in slicing_specs)
 
   def is_not_slice_applicable(
       sliced_combiner_output: Tuple[slicer.SliceKeyType,
@@ -429,18 +427,19 @@ def _AddCrossSliceMetrics(  # pylint: disable=invalid-name
                                                      Any]]]:
     baseline_slice_key, baseline_metrics = baseline_slice
     for (comparison_slice_key, comparison_metrics) in comparison_slices:
-      result = {}
-      for (comparison_metric_key,
-           comparison_metric_value) in comparison_metrics.items():
-        if (comparison_metric_key not in baseline_metrics or
-            _is_private_metrics(comparison_metric_key) or
-            not isinstance(comparison_metric_key, metric_types.MetricKey) or
-            isinstance(comparison_metric_key, metric_types.PlotKey) or
-            isinstance(comparison_metric_key, metric_types.AttributionsKey)):
-          continue
-        result[comparison_metric_key] = (
-            baseline_metrics[comparison_metric_key] - comparison_metric_value)
-
+      result = {
+          comparison_metric_key:
+          (baseline_metrics[comparison_metric_key] - comparison_metric_value)
+          for (
+              comparison_metric_key,
+              comparison_metric_value,
+          ) in comparison_metrics.items()
+          if comparison_metric_key in baseline_metrics
+          and not _is_private_metrics(comparison_metric_key)
+          and isinstance(comparison_metric_key, metric_types.MetricKey)
+          and not isinstance(comparison_metric_key, metric_types.PlotKey)
+          and not isinstance(comparison_metric_key, metric_types.AttributionsKey)
+      }
       # Compute cross slice comparison for CrossSliceDerivedComputations
       for c in cross_slice_computations:
         result.update(
@@ -549,12 +548,11 @@ def _AddDerivedCrossSliceAndDiffMetrics(  # pylint: disable=invalid-name
       for k, v in result.items():
         if _is_private_metrics(k):
           continue
-        if k.model_name != baseline_model_name and k.make_baseline_key(
-            baseline_model_name) in result:
-          # Check if metric is diffable, skip plots and non-numerical values.
-          if _is_metric_diffable(v):
-            diff_result[k.make_diff_key(
-            )] = v - result[k.make_baseline_key(baseline_model_name)]
+        if (k.model_name != baseline_model_name
+            and k.make_baseline_key(baseline_model_name) in result
+            and _is_metric_diffable(v)):
+          diff_result[k.make_diff_key(
+          )] = v - result[k.make_baseline_key(baseline_model_name)]
       result.update(diff_result)
     return slice_key, result
 
@@ -581,14 +579,12 @@ def _filter_by_key_type(
     if key_type == metric_types.PlotKey:
       if isinstance(k, metric_types.PlotKey):
         output[k] = v
-    # AttributionsKey is a also subclass of MetricKey
     elif key_type == metric_types.AttributionsKey:
       if isinstance(k, metric_types.AttributionsKey):
         output[k] = v
-    else:
-      if (not isinstance(k, metric_types.PlotKey) and
+    elif (not isinstance(k, metric_types.PlotKey) and
           not isinstance(k, metric_types.AttributionsKey)):
-        output[k] = v
+      output[k] = v
   return (slice_value, output)
 
 
@@ -771,10 +767,7 @@ def _ComputeMetricsAndPlots(  # pylint: disable=invalid-name
 
   ci_params = _get_confidence_interval_params(eval_config, metrics_specs)
 
-  cross_slice_specs = []
-  if eval_config.cross_slicing_specs:
-    cross_slice_specs = eval_config.cross_slicing_specs
-
+  cross_slice_specs = eval_config.cross_slicing_specs or []
   computations_combine_fn = _ComputationsCombineFn(computations=computations)
   derived_metrics_ptransform = _AddDerivedCrossSliceAndDiffMetrics(
       metric_computations.derived_computations,
@@ -913,7 +906,7 @@ def _EvaluateMetricsPlotsAndValidations(  # pylint: disable=invalid-name
 
   evaluations = {}
   for query_key, metrics_specs in metrics_specs_by_query_key.items():
-    query_key_text = query_key if query_key else ''
+    query_key_text = query_key or ''
     if query_key:
       extracts_for_evaluation = (
           extracts
@@ -958,7 +951,6 @@ def _EvaluateMetricsPlotsAndValidations(  # pylint: disable=invalid-name
 def _get_model_types_for_logging(
     eval_shared_models: Dict[str, types.EvalSharedModel]):
   if eval_shared_models:
-    return set(
-        [model.model_type for (name, model) in eval_shared_models.items()])
+    return {model.model_type for (name, model) in eval_shared_models.items()}
   else:
     return set([constants.MODEL_AGNOSTIC])

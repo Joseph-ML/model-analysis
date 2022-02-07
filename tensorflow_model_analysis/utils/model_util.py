@@ -95,10 +95,8 @@ def get_preprocessing_signature(signature_name: str) -> Tuple[str, List[str]]:
 def get_baseline_model_spec(
     eval_config: config_pb2.EvalConfig) -> Optional[config_pb2.ModelSpec]:
   """Returns baseline model spec."""
-  for spec in eval_config.model_specs:
-    if spec.is_baseline:
-      return spec
-  return None
+  return next((spec for spec in eval_config.model_specs if spec.is_baseline),
+              None)
 
 
 def get_non_baseline_model_specs(
@@ -112,10 +110,10 @@ def get_model_spec(eval_config: config_pb2.EvalConfig,
   """Returns model spec with given model name."""
   if len(eval_config.model_specs) == 1 and not model_name:
     return eval_config.model_specs[0]
-  for spec in eval_config.model_specs:
-    if spec.name == model_name:
-      return spec
-  return None
+  return next(
+      (spec for spec in eval_config.model_specs if spec.name == model_name),
+      None,
+  )
 
 
 def get_label_key(model_spec: config_pb2.ModelSpec,
@@ -128,14 +126,13 @@ def get_label_key(model_spec: config_pb2.ModelSpec,
       return model_spec.label_keys[output_name]
     else:
       return None
+  elif model_spec.label_key:
+    return model_spec.label_key
+  elif model_spec.label_keys:
+    raise ValueError('When setting label_keys in a model spec, all metrics '
+                     'specs for that model must specify an output_name.')
   else:
-    if model_spec.label_key:
-      return model_spec.label_key
-    elif model_spec.label_keys:
-      raise ValueError('When setting label_keys in a model spec, all metrics '
-                       'specs for that model must specify an output_name.')
-    else:
-      return None
+    return None
 
 
 def get_model_type(model_spec: Optional[config_pb2.ModelSpec],
@@ -168,18 +165,15 @@ def get_model_type(model_spec: Optional[config_pb2.ModelSpec],
       pass
 
   if tags:
-    if tags and eval_constants.EVAL_TAG in tags:
+    if eval_constants.EVAL_TAG in tags:
       return constants.TF_ESTIMATOR
     else:
       return constants.TF_GENERIC
 
   signature_name = None
   if model_spec:
-    if model_spec.signature_name:
-      signature_name = model_spec.signature_name
-    else:
-      signature_name = tf.saved_model.DEFAULT_SERVING_SIGNATURE_DEF_KEY
-
+    signature_name = (model_spec.signature_name
+                      or tf.saved_model.DEFAULT_SERVING_SIGNATURE_DEF_KEY)
   # Default to serving unless estimator is used and eval signature is used.
   if signature_name == eval_constants.EVAL_TAG:
     return constants.TF_ESTIMATOR
@@ -287,9 +281,9 @@ def get_feature_values_for_model_spec_field(
           batched_extracts[constants.TRANSFORMED_FEATURES_KEY]):
         transformed_features = batched_extracts[
             constants.TRANSFORMED_FEATURES_KEY][i]
-        if len(model_specs) > 1 and transformed_features:
-          if spec.name in transformed_features:
-            transformed_features = transformed_features[spec.name]
+        if (len(model_specs) > 1 and transformed_features
+            and spec.name in transformed_features):
+          transformed_features = transformed_features[spec.name]
         transformed_features = transformed_features or {}
       else:
         transformed_features = {}
@@ -346,10 +340,7 @@ def get_default_signature_name(model: Any) -> str:
 def _get_model_input_spec(model: Any) -> Optional[Any]:
   """Returns the model input `TensorSpec`s."""
   if hasattr(model, 'save_spec'):
-    if model.save_spec() is None:
-      return None
-    # The inputs TensorSpec is the first element of the (args, kwargs) tuple.
-    return model.save_spec()[0][0]
+    return None if model.save_spec() is None else model.save_spec()[0][0]
   elif hasattr(model, '_get_save_spec'):
     # In versions of TF released before `save_spec`, `_get_save_spec` returns
     # the input save spec.
@@ -444,16 +435,15 @@ def get_input_specs(model: Any,
   def get_callable_input_specs(fn):
     if isinstance(_get_model_input_spec(fn), dict):
       return _get_model_input_spec(fn)
-    else:
-      input_specs = {}
-      for input_name, input_tensor in zip(fn.input_names, fn.inputs):
-        if hasattr(input_tensor, 'type_spec'):
-          # "KerasTensor" types have type_spec attributes.
-          type_spec = input_tensor.type_spec
-        else:
-          type_spec = tf.type_spec_from_value(input_tensor)
-        input_specs[input_name] = type_spec
-      return input_specs
+    input_specs = {}
+    for input_name, input_tensor in zip(fn.input_names, fn.inputs):
+      if hasattr(input_tensor, 'type_spec'):
+        # "KerasTensor" types have type_spec attributes.
+        type_spec = input_tensor.type_spec
+      else:
+        type_spec = tf.type_spec_from_value(input_tensor)
+      input_specs[input_name] = type_spec
+    return input_specs
 
   if not signature_name:
     # Special support for keras-based models.
@@ -571,7 +561,6 @@ def get_inputs(
   Returns:
     Input tensors keyed by input name.
   """
-  inputs = None
   if (not adapter and
       set(input_specs.keys()) <= set(record_batch.schema.names)):
     # Create adapter based on input_specs
@@ -580,17 +569,14 @@ def get_inputs(
         tensor_representations=input_specs_to_tensor_representations(
             input_specs))
     adapter = tensor_adapter.TensorAdapter(tensor_adapter_config)
-  # Avoid getting the tensors if we appear to be feeding serialized
-  # examples to the callable.
-  if adapter and not (len(input_specs) == 1 and
-                      next(iter(input_specs.values())).dtype == tf.string and
-                      find_input_name_in_features(
-                          set(adapter.TypeSpecs().keys()),
-                          next(iter(input_specs.keys()))) is None):
-    # TODO(b/172376802): Update to pass input specs to ToBatchTensors.
-    inputs = filter_by_input_names(
-        adapter.ToBatchTensors(record_batch), list(input_specs.keys()))
-  return inputs
+  return (filter_by_input_names(
+      adapter.ToBatchTensors(record_batch), list(input_specs.keys()))
+          if adapter and
+          (len(input_specs) != 1
+           or next(iter(input_specs.values())).dtype != tf.string
+           or find_input_name_in_features(
+               set(adapter.TypeSpecs().keys()), next(iter(
+                   input_specs.keys()))) is not None) else None)
 
 
 def model_construct_fn(  # pylint: disable=invalid-name
@@ -779,12 +765,11 @@ class BatchReducibleBatchedDoFnWithModels(DoFnWithModels):
       record_batch = element[constants.ARROW_RECORD_BATCH_KEY]
       for i in range(batch_size):
         self._batch_size.update(1)
-        unbatched_element = {}
-        for key in element.keys():
-          if key == constants.ARROW_RECORD_BATCH_KEY:
-            unbatched_element[key] = record_batch.slice(i, 1)
-          else:
-            unbatched_element[key] = [element[key][i]]
+        unbatched_element = {
+            key: record_batch.slice(i, 1)
+            if key == constants.ARROW_RECORD_BATCH_KEY else [element[key][i]]
+            for key in element.keys()
+        }
         result.extend(self._batch_reducible_process(unbatched_element))
       self._num_instances.inc(len(result))
       return result

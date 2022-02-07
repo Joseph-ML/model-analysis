@@ -70,14 +70,12 @@ def _fixed_size_sample(
   keys = []
   for model_name in model_names or ['']:
     for output_name in output_names or ['']:
-      for sub_key in sub_keys or [None]:
-        keys.append(
-            metric_types.MetricKey(
+      keys.extend(metric_types.MetricKey(
                 name,
                 model_name=model_name,
                 output_name=output_name,
                 sub_key=sub_key,
-                example_weighted=example_weighted))
+                example_weighted=example_weighted) for sub_key in sub_keys or [None])
   return [
       metric_types.MetricComputation(
           keys=keys,

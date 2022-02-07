@@ -365,11 +365,8 @@ class ConfusionMatrixMetric(ConfusionMatrixMetricBase):
       key: Metric key.
       matrices: Computed binary confusion matrices.
     """
-    values = []
-    for i in range(len(matrices.thresholds)):
-      values.append(
-          self.result(matrices.tp[i], matrices.tn[i], matrices.fp[i],
-                      matrices.fn[i]))
+    values = [self.result(matrices.tp[i], matrices.tn[i], matrices.fp[i],
+                      matrices.fn[i]) for i in range(len(matrices.thresholds))]
     return values[0] if len(matrices.thresholds) == 1 else np.array(values)
 
 
@@ -1138,8 +1135,7 @@ class BinaryAccuracy(ConfusionMatrixMetric):
     return BINARY_ACCURACY_NAME
 
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
-    denominator = tp + fp + tn + fn
-    if denominator:
+    if denominator := tp + fp + tn + fn:
       return (tp + tn) / denominator
     else:
       return float('nan')
@@ -1192,11 +1188,7 @@ class Precision(ConfusionMatrixMetric):
 
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     del tn, fn
-    denominator = tp + fp
-    if denominator:
-      return tp / denominator
-    else:
-      return float('nan')
+    return tp / denominator if (denominator := tp + fp) else float('nan')
 
 
 metric_types.register_metric(Precision)
@@ -1266,10 +1258,7 @@ class Recall(ConfusionMatrixMetric):
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     del tn, fp
     denominator = tp + fn
-    if denominator > 0.0:
-      return tp / denominator
-    else:
-      return float('nan')
+    return tp / denominator if denominator > 0.0 else float('nan')
 
 
 metric_types.register_metric(Recall)
@@ -1328,10 +1317,7 @@ class Specificity(ConfusionMatrixMetric):
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     del tp, fn
     denominator = tn + fp
-    if denominator > 0.0:
-      return tn / denominator
-    else:
-      return float('nan')
+    return tn / denominator if denominator > 0.0 else float('nan')
 
 
 metric_types.register_metric(Specificity)
@@ -1389,10 +1375,7 @@ class FallOut(ConfusionMatrixMetric):
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     del tp, fn
     denominator = fp + tn
-    if denominator > 0.0:
-      return fp / denominator
-    else:
-      return float('nan')
+    return fp / denominator if denominator > 0.0 else float('nan')
 
 
 metric_types.register_metric(FallOut)
@@ -1450,10 +1433,7 @@ class MissRate(ConfusionMatrixMetric):
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     del tn, fp
     denominator = fn + tp
-    if denominator > 0.0:
-      return fn / denominator
-    else:
-      return float('nan')
+    return fn / denominator if denominator > 0.0 else float('nan')
 
 
 metric_types.register_metric(MissRate)
@@ -1511,10 +1491,7 @@ class NegativePredictiveValue(ConfusionMatrixMetric):
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     del tp, fp
     denominator = tn + fn
-    if denominator > 0.0:
-      return tn / denominator
-    else:
-      return float('nan')
+    return tn / denominator if denominator > 0.0 else float('nan')
 
 
 metric_types.register_metric(NegativePredictiveValue)
@@ -1572,10 +1549,7 @@ class FalseDiscoveryRate(ConfusionMatrixMetric):
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     del tn, fn
     denominator = fp + tp
-    if denominator > 0.0:
-      return fp / denominator
-    else:
-      return float('nan')
+    return fp / denominator if denominator > 0.0 else float('nan')
 
 
 metric_types.register_metric(FalseDiscoveryRate)
@@ -1614,10 +1588,7 @@ class FalseOmissionRate(ConfusionMatrixMetric):
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     del tp, fp
     denominator = fn + tn
-    if denominator > 0.0:
-      return fn / denominator
-    else:
-      return float('nan')
+    return fn / denominator if denominator > 0.0 else float('nan')
 
 
 metric_types.register_metric(FalseOmissionRate)
@@ -1655,10 +1626,7 @@ class Prevalence(ConfusionMatrixMetric):
 
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     denominator = tp + tn + fp + fn
-    if denominator > 0.0:
-      return (tp + fn) / denominator
-    else:
-      return float('nan')
+    return (tp + fn) / denominator if denominator > 0.0 else float('nan')
 
 
 metric_types.register_metric(Prevalence)
@@ -1741,10 +1709,7 @@ class ThreatScore(ConfusionMatrixMetric):
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     del tn
     denominator = tp + fn + fp
-    if denominator > 0.0:
-      return tp / denominator
-    else:
-      return float('nan')
+    return tp / denominator if denominator > 0.0 else float('nan')
 
 
 metric_types.register_metric(ThreatScore)
@@ -1827,13 +1792,7 @@ class F1Score(ConfusionMatrixMetric):
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     del tn
     denominator = 2 * tp + fp + fn
-    if denominator > 0.0:
-      # This is the harmonic mean of precision and recall or the same as
-      # 2 * (precision * recall) / (precision + recall).
-      # See https://en.wikipedia.org/wiki/Confusion_matrix for more information.
-      return 2 * tp / denominator
-    else:
-      return float('nan')
+    return 2 * tp / denominator if denominator > 0.0 else float('nan')
 
 
 metric_types.register_metric(F1Score)

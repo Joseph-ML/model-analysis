@@ -166,7 +166,7 @@ class _MultiLabelConfusionMatrixPlotCombiner(beam.CombineFn):
     self._key = key
     self._eval_config = eval_config
     self._example_weighted = example_weighted
-    self._thresholds = thresholds if thresholds else [0.5]
+    self._thresholds = thresholds or [0.5]
 
   def create_accumulator(self) -> _Matrices:
     return {}

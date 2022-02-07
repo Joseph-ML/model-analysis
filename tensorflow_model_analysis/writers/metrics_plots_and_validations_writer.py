@@ -66,7 +66,7 @@ _SliceKeyDictPythonType = Dict[str, List[Dict[str, Union[bytes, float, int]]]]
 
 def _match_all_files(file_path: str) -> str:
   """Return expression to match all files at given path."""
-  return file_path + '*'
+  return f'{file_path}*'
 
 
 def _parquet_column_iterator(paths: Iterable[str],
@@ -132,7 +132,7 @@ def load_and_deserialize_metrics(
     output_path = os.path.join(output_path, constants.METRICS_KEY)
   pattern = _match_all_files(output_path)
   if output_file_format:
-    pattern = pattern + '.' + output_file_format
+    pattern = f'{pattern}.{output_file_format}'
   paths = tf.io.gfile.glob(pattern)
   for value in _raw_value_iterator(paths, output_file_format):
     metrics = metrics_for_slice_pb2.MetricsForSlice.FromString(value)
@@ -164,7 +164,7 @@ def load_and_deserialize_plots(
     output_path = os.path.join(output_path, constants.PLOTS_KEY)
   pattern = _match_all_files(output_path)
   if output_file_format:
-    pattern = pattern + '.' + output_file_format
+    pattern = f'{pattern}.{output_file_format}'
   paths = tf.io.gfile.glob(pattern)
   for value in _raw_value_iterator(paths, output_file_format):
     plots = metrics_for_slice_pb2.PlotsForSlice.FromString(value)
@@ -196,7 +196,7 @@ def load_and_deserialize_attributions(
     output_path = os.path.join(output_path, constants.ATTRIBUTIONS_KEY)
   pattern = _match_all_files(output_path)
   if output_file_format:
-    pattern = pattern + '.' + output_file_format
+    pattern = f'{pattern}.{output_file_format}'
   paths = tf.io.gfile.glob(pattern)
   for value in _raw_value_iterator(paths, output_file_format):
     attributions = metrics_for_slice_pb2.AttributionsForSlice.FromString(value)
@@ -223,12 +223,12 @@ def load_and_deserialize_validation_result(
     output_path = os.path.join(output_path, constants.VALIDATIONS_KEY)
   pattern = _match_all_files(output_path)
   if output_file_format:
-    pattern = pattern + '.' + output_file_format
-  validation_records = []
+    pattern = f'{pattern}.{output_file_format}'
   paths = tf.io.gfile.glob(pattern)
-  for value in _raw_value_iterator(paths, output_file_format):
-    validation_records.append(
-        validation_result_pb2.ValidationResult.FromString(value))
+  validation_records = [
+      validation_result_pb2.ValidationResult.FromString(value)
+      for value in _raw_value_iterator(paths, output_file_format)
+  ]
   assert len(validation_records) == 1
   return validation_records[0]
 
@@ -629,9 +629,8 @@ class CombineValidations(beam.CombineFn):
       accumulator.validation_ok = self._rubber_stamp
       # Default is to missing thresholds when not rubber stamping.
       accumulator.missing_thresholds = not self._rubber_stamp
-    missing = metrics_validator.get_missing_slices(
-        accumulator.validation_details.slicing_details, self._eval_config)
-    if missing:
+    if missing := metrics_validator.get_missing_slices(
+        accumulator.validation_details.slicing_details, self._eval_config):
       missing_slices = []
       missing_cross_slices = []
       for m in missing:
