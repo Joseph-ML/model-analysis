@@ -89,7 +89,8 @@ class KerasSavedModelUtilTest(testutil.TensorflowModelAnalysisTest,
         for output_name in output_names:
           model.add_metric(
               tf.reduce_sum(layers_per_output[output_name]),
-              name='custom_' + output_name)
+              name=f'custom_{output_name}',
+          )
       model.compile(
           loss=losses_per_output,
           metrics=metrics_per_output,
@@ -153,7 +154,8 @@ class KerasSavedModelUtilTest(testutil.TensorflowModelAnalysisTest,
         for output_name in output_names:
           model.add_metric(
               tf.reduce_sum(layers_per_output[output_name]),
-              name='custom_' + output_name)
+              name=f'custom_{output_name}',
+          )
       model.compile(
           loss=losses_per_output,
           metrics=metrics_per_output,

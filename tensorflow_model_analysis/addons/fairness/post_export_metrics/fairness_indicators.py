@@ -261,8 +261,8 @@ class _FairnessAuc(post_export_metrics._PostExportMetric):
     self._subgroup_auc_metric = self._metric_key(self._metric_name +
                                                  '/subgroup_auc/' +
                                                  self._subgroup_key)
-    self._bpsn_auc_metric = self._metric_key(self._metric_name + '/bpsn_auc/' +
-                                             self._subgroup_key)
+    self._bpsn_auc_metric = self._metric_key(
+        f'{self._metric_name}/bpsn_auc/{self._subgroup_key}')
     self._bnsp_auc_metric = self._metric_key(self._metric_name + '/bnsp_auc/' +
                                              self._subgroup_key)
 
@@ -347,19 +347,13 @@ class _FairnessAuc(post_export_metrics._PostExportMetric):
   def populate_stats_and_pop(
       self, slice_key: slicer.SliceKeyType, combine_metrics: Dict[str, Any],
       output_metrics: Dict[str, metrics_pb2.MetricValue]) -> None:
-    # Remove metrics if it's not Overall slice. This post export metrics
-    # calculate subgroup_auc, bpsn_auc, bnsp_auc. All of these are based on
-    # all examples. That's why only the overall slice makes sence and the rest
-    # will be removed.
-    if slice_key:
-      for metrics_key in (self._subgroup_auc_metric, self._bpsn_auc_metric,
+    for metrics_key in (self._subgroup_auc_metric, self._bpsn_auc_metric,
                           self._bnsp_auc_metric):
+      if slice_key:
         combine_metrics.pop(metric_keys.lower_bound_key(metrics_key))
         combine_metrics.pop(metric_keys.upper_bound_key(metrics_key))
         combine_metrics.pop(metrics_key)
-    else:
-      for metrics_key in (self._subgroup_auc_metric, self._bpsn_auc_metric,
-                          self._bnsp_auc_metric):
+      else:
         post_export_metrics._populate_to_auc_bounded_value_and_pop(
             combine_metrics, output_metrics, metrics_key)
 

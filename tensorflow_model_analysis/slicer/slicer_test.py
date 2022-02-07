@@ -32,10 +32,7 @@ from google.protobuf import text_format
 
 
 def make_features_dict(features_dict):
-  result = {}
-  for key, value in features_dict.items():
-    result[key] = {'node': np.array(value)}
-  return result
+  return {key: {'node': np.array(value)} for key, value in features_dict.items()}
 
 
 def create_fpls():
@@ -78,10 +75,7 @@ class SlicerTest(testutil.TensorflowModelAnalysisTest, parameterized.TestCase):
     self.longMessage = True  # pylint: disable=invalid-name
 
   def _makeFeaturesDict(self, features_dict):
-    result = {}
-    for key, value in features_dict.items():
-      result[key] = {'node': np.array(value)}
-    return result
+    return {key: {'node': np.array(value)} for key, value in features_dict.items()}
 
   def assertSliceResult(self, name, features_dict, columns, features, expected):
     spec = slicer.SingleSliceSpec(columns=columns, features=features)
@@ -604,10 +598,7 @@ class SlicerTest(testutil.TensorflowModelAnalysisTest, parameterized.TestCase):
     def check_output(got):
       try:
         self.assertLen(got, 2)
-        slices = {}
-        for (k, v) in got:
-          slices[k] = v
-
+        slices = dict(got)
         self.assertEqual(slices[slice_key_1], {'val11': 'val12'})
         self.assertIn(metric_keys.ERROR_METRIC, slices[slice_key_2])
       except AssertionError as err:

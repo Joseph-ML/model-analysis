@@ -609,11 +609,11 @@ class _ExampleCount(_PostExportMetric):
           tf.compat.v1.logging.info('Using the first key from labels_dict: %s',
                                     first_key)
 
-      if ref_tensor is None:
-        tf.compat.v1.logging.info(
-            'Could not find a reference Tensor for example count. '
-            'Defaulting to the empty Tensor.')
-        ref_tensor = tf.constant([])
+    if ref_tensor is None:
+      tf.compat.v1.logging.info(
+          'Could not find a reference Tensor for example count. '
+          'Defaulting to the empty Tensor.')
+      ref_tensor = tf.constant([])
 
     return {
         self._metric_key(metric_keys.EXAMPLE_COUNT):
@@ -1301,7 +1301,7 @@ class _AucPlots(_ConfusionMatrixBasedMetric):
       tensor_index: Optional index to specify class predictions to calculate
         metrics on in the case of multi-class models.
     """
-    thresholds = [i * 1.0 / num_buckets for i in range(0, num_buckets + 1)]
+    thresholds = [i * 1.0 / num_buckets for i in range(num_buckets + 1)]
     thresholds = [-1e-6] + thresholds
     super().__init__(
         example_weight_key=example_weight_key,

@@ -94,23 +94,21 @@ class MinLabelPositionCombineFn(beam.CombineFn):
                 query_fpl: query_types.QueryFPL) -> _State:
     weight = 1.0
     if self._weight_key:
-      weights = [
+      if weights := [
           float(_get_feature_value(fpl, self._weight_key))
           for fpl in query_fpl.fpls
-      ]
-      if weights:
+      ]:
         if min(weights) != max(weights):
           raise ValueError('weights were not identical for all examples in the '
                            'query. query_id was: %s, weights were: %s' %
                            (query_fpl.query_id, weights))
         weight = weights[0]
 
-    min_label_pos = None
-    for pos, fpl in enumerate(query_fpl.fpls):
-      if self._get_label(fpl) > 0:
-        min_label_pos = pos + 1  # Use 1-indexed positions
-        break
-
+    min_label_pos = next(
+        (pos + 1
+         for pos, fpl in enumerate(query_fpl.fpls) if self._get_label(fpl) > 0),
+        None,
+    )
     state_to_add = _State(min_pos_sum=0.0, weight_sum=0.0)
     if min_label_pos:
       state_to_add = _State(min_pos_sum=min_label_pos, weight_sum=weight)

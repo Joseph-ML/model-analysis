@@ -198,10 +198,15 @@ def render_fairness_indicator(
                                                slicing_column, slicing_spec,
                                                output_name, multi_class_key)
   else:
-    multi_data = {}
-    for eval_name in multi_eval_results:
-      multi_data[eval_name] = convert_slicing_metrics_to_ui_input(
-          multi_eval_results[eval_name].slicing_metrics, slicing_column,
-          slicing_spec, output_name, multi_class_key)
+    multi_data = {
+        eval_name: convert_slicing_metrics_to_ui_input(
+            multi_eval_results[eval_name].slicing_metrics,
+            slicing_column,
+            slicing_spec,
+            output_name,
+            multi_class_key,
+        )
+        for eval_name in multi_eval_results
+    }
   return visualization.render_fairness_indicator(data, multi_data,
                                                  event_handlers)

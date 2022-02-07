@@ -534,9 +534,7 @@ class MetricSpecsTest(tf.test.TestCase):
 
     keys = []
     for m in computations:
-      for k in m.keys:
-        if not k.name.startswith('_'):
-          keys.append(k)
+      keys.extend(k for k in m.keys if not k.name.startswith('_'))
     self.assertLen(keys, 31)
     self.assertIn(
         metric_types.MetricKey(name='example_count', model_name='model_name'),

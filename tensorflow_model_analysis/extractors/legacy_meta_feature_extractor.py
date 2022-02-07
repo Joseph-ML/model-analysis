@@ -55,14 +55,11 @@ def get_fpl_copy(extracts: types.Extracts) -> types.FeaturesPredictionsLabels:
   if not fpl_orig:
     raise RuntimeError('FPL missing, Please ensure _Predict() was called.')
 
-  # We must make a copy of the FPL tuple as well, so that we don't mutate the
-  # original which is disallowed by Beam.
-  fpl_copy = types.FeaturesPredictionsLabels(
+  return types.FeaturesPredictionsLabels(
       features=copy.copy(fpl_orig.features),
       labels=fpl_orig.labels,
       predictions=fpl_orig.predictions,
       input_ref=fpl_orig.input_ref)
-  return fpl_copy
 
 
 def update_fpl_features(fpl: types.FeaturesPredictionsLabels,

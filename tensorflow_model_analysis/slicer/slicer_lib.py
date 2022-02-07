@@ -114,7 +114,7 @@ class SingleSliceSpec:
 
     if spec is not None:
       columns = spec.feature_keys
-      features = [(k, v) for k, v in spec.feature_values.items()]
+      features = list(spec.feature_values.items())
 
     features = [(k, _to_type(v)) for (k, v) in features]
 
@@ -207,14 +207,10 @@ class SingleSliceSpec:
         return
 
       accessor_values = accessor.get(key)
-      if value not in accessor_values:
-        if isinstance(value, str):
-          if value.encode() not in accessor_values:  # For Python3.
-            return
-        # Check that string version of int/float not in values.
-        elif str(value) not in accessor_values:
-          return
-
+      if value not in accessor_values and (
+          isinstance(value, str) and value.encode() not in accessor_values
+          or not isinstance(value, str) and str(value) not in accessor_values):
+        return
     # Get all the column matches (where we're matching only the column).
     #
     # For each column, we generate a List[SingletonSliceKeyType] containing
@@ -283,14 +279,11 @@ def serialize_slice_key(
 
 def _to_type(v: FeatureValueType) -> FeatureValueType:
   """Converts string versions of ints and floats to respective values."""
-  if isinstance(v, float) or isinstance(v, int):
+  if isinstance(v, (float, int)):
     return v
   try:
     v = str(v)
-    if '.' in v:
-      return float(v)
-    else:
-      return int(v)
+    return float(v) if '.' in v else int(v)
   except ValueError:
     return v
 
@@ -372,8 +365,7 @@ def get_slices_for_features_dicts(
   """
   accessor = slice_accessor.SliceAccessor(features_dicts, default_features_dict)
   for single_slice_spec in slice_spec:
-    for slice_key in single_slice_spec.generate_slices(accessor):
-      yield slice_key
+    yield from single_slice_spec.generate_slices(accessor)
 
 
 def stringify_slice_key(slice_key: SliceKeyType) -> str:
@@ -435,11 +427,10 @@ def is_cross_slice_applicable(
   if not SingleSliceSpec(spec=cross_slicing_spec.baseline_spec
                         ).is_slice_applicable(baseline_slice_key):
     return False
-  for comparison_slicing_spec in cross_slicing_spec.slicing_specs:
-    if SingleSliceSpec(
-        spec=comparison_slicing_spec).is_slice_applicable(comparison_slice_key):
-      return True
-  return False
+  return any(
+      SingleSliceSpec(spec=comparison_slicing_spec).is_slice_applicable(
+          comparison_slice_key)
+      for comparison_slicing_spec in cross_slicing_spec.slicing_specs)
 
 
 def get_slice_key_type(
@@ -463,21 +454,17 @@ def get_slice_key_type(
       col, val = singleton_slice_key
     except ValueError:
       return False
-    if (isinstance(col, (bytes, str)) and
+    return (isinstance(col, (bytes, str)) and
         (isinstance(val, (bytes, str)) or isinstance(val, int) or
-         isinstance(val, float))):
-      return True
-    else:
-      return False
+         isinstance(val, float)))
 
   def is_slice_key_type(slice_key: SliceKeyType) -> bool:
     if not slice_key:
       return True
 
-    for single_slice_key in slice_key:
-      if not is_singleton_slice_key_type(single_slice_key):
-        return False
-    return True
+    return all(
+        is_singleton_slice_key_type(single_slice_key)
+        for single_slice_key in slice_key)
 
   if is_slice_key_type(slice_key):
     return SliceKeyType
@@ -527,10 +514,8 @@ def slice_key_matches_slice_specs(
   Returns:
     True if the slice_key matches any slice specs, False otherwise.
   """
-  for slice_spec in slice_specs:
-    if slice_spec.is_slice_applicable(slice_key):
-      return True
-  return False
+  return any(
+      slice_spec.is_slice_applicable(slice_key) for slice_spec in slice_specs)
 
 
 @beam.typehints.with_input_types(types.Extracts)
@@ -556,9 +541,7 @@ class _FanoutSlicesDoFn(beam.DoFn):
     # We need to flatten and dedup the slice keys.
     if _is_multi_dim_keys(slice_keys):
       arr = np.array(slice_keys)
-      unique_keys = set()
-      for k in arr.flatten():
-        unique_keys.add(k)
+      unique_keys = set(arr.flatten())
       if not unique_keys and arr.shape:
         # If only the empty overall slice is in array, it is removed by flatten
         unique_keys.add(())

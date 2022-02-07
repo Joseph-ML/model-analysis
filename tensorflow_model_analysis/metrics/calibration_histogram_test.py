@@ -346,8 +346,9 @@ class CalibrationHistogramTest(testutil.TensorflowModelAnalysisTest):
   def testRebin(self):
     # [Bucket(0, -1, -0.01), Bucket(1, 0, 0) ... Bucket(101, 101, 1.01)]
     histogram = [calibration_histogram.Bucket(0, -1, -.01, 1.0)]
-    for i in range(100):
-      histogram.append(calibration_histogram.Bucket(i + 1, i, i * .01, 1.0))
+    histogram.extend(
+        calibration_histogram.Bucket(i + 1, i, i * 0.01, 1.0)
+        for i in range(100))
     histogram.append(calibration_histogram.Bucket(101, 101, 1.01, 1.0))
     # [-1e-7, 0.0, 0.1, ..., 0.9, 1.0, 1.0+1e-7]
     thresholds = [-1e-7] + [i * 1.0 / 10 for i in range(11)] + [1.0 + 1e-7]
@@ -381,7 +382,7 @@ class CalibrationHistogramTest(testutil.TensorflowModelAnalysisTest):
         calibration_histogram.Bucket(100, 99.0, 98.01, 99.0)  # pred = .99
     ]
     # [0, 0.1, ..., 0.9, 1.0]
-    thresholds = [i * 1.0 / 10 for i in range(0, 11)]
+    thresholds = [i * 1.0 / 10 for i in range(11)]
     got = calibration_histogram.rebin(thresholds, histogram, 100)
 
     expected = [

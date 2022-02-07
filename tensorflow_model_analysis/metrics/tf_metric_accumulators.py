@@ -63,14 +63,13 @@ class TFMetricsAccumulator:
       size_estimator_fn: Function to use for estimating the size of the inputs.
       desired_batch_size: FOR TESTING ONLY.
     """
-    # Inputs have shape (num_outputs, num_metrics, num_accumulated_inputs)
-    self._inputs = []
     # Weights have shape (num_outputs, num_metrics)
     self._weights = []  # type: List[List[Optional[np.ndarray]]]
-    for input_count in input_counts:
-      self._inputs.append(tuple([] for _ in range(input_count)))
-    for output_metric_count in metric_counts:
-      self._weights.append([None] * output_metric_count)
+    self._inputs = [
+        tuple([] for _ in range(input_count)) for input_count in input_counts
+    ]
+    self._weights.extend(
+        [None] * output_metric_count for output_metric_count in metric_counts)
     self._size_estimator = size_estimator.SizeEstimator(
         size_threshold=self._TOTAL_INPUT_BYTE_SIZE_THRESHOLD,
         size_fn=size_estimator_fn)

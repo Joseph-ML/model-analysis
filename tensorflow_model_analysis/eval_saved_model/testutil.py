@@ -120,17 +120,16 @@ class TensorflowModelAnalysisTest(tf.test.TestCase):
     got = list(got_seq)
     expected = list(expected_seq)
     self.assertEqual(
-        len(got), len(expected), msg=msg_prefix + 'lengths do not match')
+        len(got), len(expected), msg=f'{msg_prefix}lengths do not match')
     for index, (a, b) in enumerate(zip(got, expected)):
       msg = msg_prefix + 'at index %d. sequences were: %s and %s' % (index, got,
                                                                      expected)
       if math.isnan(a) or math.isnan(b):
         self.assertEqual(math.isnan(a), math.isnan(b), msg=msg)
+      elif delta:
+        self.assertAlmostEqual(a, b, msg=msg, delta=delta)
       else:
-        if delta:
-          self.assertAlmostEqual(a, b, msg=msg, delta=delta)
-        else:
-          self.assertAlmostEqual(a, b, msg=msg, places=places)
+        self.assertAlmostEqual(a, b, msg=msg, places=places)
 
   def assertSparseTensorValueEqual(
       self, expected_sparse_tensor_value: Union[types.SparseTensorValue,
@@ -229,7 +228,8 @@ class TensorflowModelAnalysisTest(tf.test.TestCase):
 
     # Check that each FPL corresponds to one example.
     self.assertSequenceEqual(
-        range(0, len(raw_example_bytes_list)),
-        [fetched.input_ref for fetched in fetched_list])
+        range(len(raw_example_bytes_list)),
+        [fetched.input_ref for fetched in fetched_list],
+    )
 
     return eval_saved_model.as_features_predictions_labels(fetched_list)

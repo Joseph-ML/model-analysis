@@ -233,7 +233,7 @@ class _MultiClassConfusionMatrixCombiner(beam.CombineFn):
     self._key = key
     self._eval_config = eval_config
     self._example_weighted = example_weighted
-    self._thresholds = thresholds if thresholds else [0.0]
+    self._thresholds = thresholds or [0.0]
 
   def create_accumulator(self) -> Matrices:
     return Matrices()
@@ -257,10 +257,7 @@ class _MultiClassConfusionMatrixCombiner(beam.CombineFn):
           'Predictions shape must be > 1 for multi-class confusion matrix: '
           'shape={}, StandardMetricInputs={}'.format(predictions.shape,
                                                      element))
-    if label.size > 1:
-      actual_class_id = np.argmax(label)
-    else:
-      actual_class_id = int(label)
+    actual_class_id = np.argmax(label) if label.size > 1 else int(label)
     predicted_class_id = np.argmax(predictions)
     example_weight = float(example_weight)
     for threshold in self._thresholds:

@@ -101,7 +101,7 @@ def EvalInputReceiver(  # pylint: disable=invalid-name
   def add_tensors(prefix, tensor_or_dict):
     if isinstance(tensor_or_dict, dict):
       for key in tensor_or_dict:
-        updated_receiver_tensors[prefix + '/' + key] = tensor_or_dict[key]
+        updated_receiver_tensors[f'{prefix}/{key}'] = tensor_or_dict[key]
     else:
       updated_receiver_tensors[prefix] = tensor_or_dict
 

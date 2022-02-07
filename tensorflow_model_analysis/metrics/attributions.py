@@ -127,12 +127,10 @@ def _mean_attributions(
     """Returns mean attributions."""
     total_attributions = metrics[total_attributions_key]
     count = metrics[example_count_key]
-    attributions = {}
-    for k, v in total_attributions.items():
-      if np.isclose(count, 0.0):
-        attributions[k] = float('nan')
-      else:
-        attributions[k] = v / count
+    attributions = {
+        k: float('nan') if np.isclose(count, 0.0) else v / count
+        for k, v in total_attributions.items()
+    }
     return {key: attributions}
 
   derived_computation = metric_types.DerivedMetricComputation(
@@ -236,9 +234,9 @@ def _total_attributions_computations(
   """
   if not name:
     if absolute:
-      name = '_' + TOTAL_ABSOLUTE_ATTRIBUTIONS_NAME
+      name = f'_{TOTAL_ABSOLUTE_ATTRIBUTIONS_NAME}'
     else:
-      name = '_' + TOTAL_ATTRIBUTIONS_NAME
+      name = f'_{TOTAL_ATTRIBUTIONS_NAME}'
   key = metric_types.AttributionsKey(
       name=name,
       model_name=model_name,
@@ -338,9 +336,10 @@ class _TotalAttributionsCombiner(beam.CombineFn):
   def extract_output(
       self, accumulator: Dict[str, List[float]]
   ) -> Dict[metric_types.AttributionsKey, Dict[str, Union[float, np.ndarray]]]:
-    result = {}
-    for k, v in accumulator.items():
-      result[k] = v[0] if len(v) == 1 else np.array(v)
+    result = {
+        k: v[0] if len(v) == 1 else np.array(v)
+        for k, v in accumulator.items()
+    }
     return {self._key: result}
 
 

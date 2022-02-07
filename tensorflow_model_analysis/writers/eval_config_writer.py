@@ -71,7 +71,7 @@ def load_eval_run(
     EvalConfig is not found at the given path, None will be returned.
   """
   if filename is None:
-    filename = EVAL_CONFIG_FILE + '.' + output_file_format
+    filename = f'{EVAL_CONFIG_FILE}.{output_file_format}'
   path = os.path.join(output_path, filename)
   if tf.io.gfile.exists(path):
     with tf.io.gfile.GFile(path, 'r') as f:
@@ -134,7 +134,7 @@ def EvalConfigWriter(  # pylint: disable=invalid-name
   if model_locations is None:
     model_locations = {'': '<unknown>'}
   if filename is None:
-    filename = EVAL_CONFIG_FILE + '.' + output_file_format
+    filename = f'{EVAL_CONFIG_FILE}.{output_file_format}'
 
   return writer.Writer(
       stage_name='WriteEvalConfig',

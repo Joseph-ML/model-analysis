@@ -138,11 +138,11 @@ class _TFMAPredictionDoFn(model_util.BatchReducibleDoFnWithModels):
             if not self._eval_config:
               element_copy[constants.FEATURES_PREDICTIONS_LABELS_KEY] = (
                   loaded_model.as_features_predictions_labels([fetched])[0])
+          elif not self._eval_config:
+            raise ValueError(
+                'PredictExtractor can only be used with multi-output models '
+                'if eval_config is passed.')
           else:
-            if not self._eval_config:
-              raise ValueError(
-                  'PredictExtractor can only be used with multi-output models '
-                  'if eval_config is passed.')
             # If only one model, the predictions are stored without using a dict
             element_copy[constants.PREDICTIONS_KEY] = {
                 model_name: element_copy[constants.PREDICTIONS_KEY]

@@ -78,8 +78,7 @@ def tf_metric_computations(
     metrics = {'': metrics}
 
   if aggregation_type is not None:
-    sparse_metrics = _sparse_metrics(metrics)
-    if sparse_metrics:
+    if sparse_metrics := _sparse_metrics(metrics):
       raise ValueError(
           'sparse metrics cannot be used with aggregation options. Either '
           'disable aggregation settings or replace the sparse metrics with'
@@ -123,9 +122,7 @@ def tf_metric_computations(
     metric_keys, metric_configs, loss_configs = _metric_keys_and_configs(
         non_confusion_matrix_metrics, model_name, sub_key, aggregation_type,
         example_weighted)
-    for sub_key, keys in metric_keys.items():
-      computations.append(
-          metric_types.MetricComputation(
+    computations.extend(metric_types.MetricComputation(
               keys=keys,
               preprocessor=None,
               combiner=_CompilableMetricsCombiner(
@@ -139,8 +136,7 @@ def tf_metric_computations(
                   class_weights,
                   example_weighted,
                   desired_batch_size,
-              )))
-
+              )) for sub_key, keys in metric_keys.items())
   return computations
 
 
@@ -289,11 +285,10 @@ def _custom_objects(
   """Returns list of (module, class_name) tuples for custom objects."""
   custom_objects = []
   for metric_list in metrics.values():
-    for metric in metric_list:
-      if (metric.__class__.__module__ != tf.keras.metrics.__name__ and
-          metric.__class__.__module__ != tf.keras.losses.__name__):
-        custom_objects.append(
-            (metric.__class__.__module__, metric.__class__.__name__))
+    custom_objects.extend(
+        (metric.__class__.__module__, metric.__class__.__name__)
+        for metric in metric_list if metric.__class__.__module__ not in
+        [tf.keras.metrics.__name__, tf.keras.losses.__name__])
   return custom_objects
 
 

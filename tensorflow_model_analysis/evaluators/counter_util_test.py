@@ -65,9 +65,9 @@ class CounterUtilTest(tf.test.TestCase):
     result = pipeline.run()
 
     for model_type in model_types:
-      metric_filter = beam.metrics.metric.MetricsFilter().with_namespace(
+      metric_filter = (beam.metrics.metric.MetricsFilter().with_namespace(
           constants.METRICS_NAMESPACE).with_name(
-              'metric_computed_FairnessIndicators_v2_' + model_type)
+              f'metric_computed_FairnessIndicators_v2_{model_type}'))
       actual_metrics_count = result.metrics().query(
           filter=metric_filter)['counters'][0].committed
 

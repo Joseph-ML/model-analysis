@@ -353,9 +353,7 @@ class TestCase(testutil.TensorflowModelAnalysisTest):
     def check_metrics(got):
       """Check metrics callback."""
       try:
-        slices = {}
-        for slice_key, value in got:
-          slices[slice_key] = value
+        slices = dict(got)
         self.assertCountEqual(
             list(slices.keys()), list(expected_slice_metrics.keys()))
         for slice_key, expected_metrics in expected_slice_metrics.items():

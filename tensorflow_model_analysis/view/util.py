@@ -66,12 +66,11 @@ def get_slicing_metrics(
 
   slice_count = len(data)
   if not slice_count:
-    if not slicing_spec:
-      if not slicing_column:
-        slicing_column = slicer.OVERALL_SLICE_NAME
-      raise ValueError('No slices found for %s' % slicing_column)
-    else:
+    if slicing_spec:
       raise ValueError('No slices found for %s' % slicing_spec)
+    if not slicing_column:
+      slicing_column = slicer.OVERALL_SLICE_NAME
+    raise ValueError('No slices found for %s' % slicing_column)
   elif not slicing_column and not slicing_spec and slice_count > 1:
     raise ValueError('More than one slice found for %s' %
                      slicer.OVERALL_SLICE_NAME)
@@ -93,15 +92,11 @@ def find_all_slices(
   Returns:
     A list of {slice, metrics}
   """
-  data = []
-  for (slice_key, metric_value) in results:
-    if slicing_spec.is_slice_applicable(slice_key):
-      data.append({
-          'slice': slicer.stringify_slice_key(slice_key),
-          'metrics': metric_value
-      })
-
-  return data  # pytype: disable=bad-return-type
+  return [{
+      'slice': slicer.stringify_slice_key(slice_key),
+      'metrics': metric_value
+  } for (slice_key, metric_value) in results
+          if slicing_spec.is_slice_applicable(slice_key)]
 
 
 def get_time_series(
@@ -269,13 +264,13 @@ def get_plot_data_and_config(
   sub_key_id = None
 
   if class_id is not None:
-    sub_key_oneof_check = sub_key_oneof_check + 1
+    sub_key_oneof_check += 1
     sub_key_id = 'classId:' + str(class_id)
   if top_k is not None:
-    sub_key_oneof_check = sub_key_oneof_check + 1
+    sub_key_oneof_check += 1
     sub_key_id = 'topK:' + str(top_k)
   if k is not None:
-    sub_key_oneof_check = sub_key_oneof_check + 1
+    sub_key_oneof_check += 1
     sub_key_id = 'k:' + str(k)
   if sub_key_oneof_check > 1:
     raise ValueError('Up to one of class_id, top_k and k can be provided.')
@@ -382,18 +377,16 @@ def get_slicing_config(
         model_spec = spec
         break
 
-  if model_spec:
-    if model_spec.example_weight_key:
-      if eval_config.metrics_specs:
-        # Legacy post_export_metric
-        default_column = weighted_example_count.WEIGHTED_EXAMPLE_COUNT_NAME
-      else:
-        default_column = metric_keys.EXAMPLE_WEIGHT
+  if model_spec and model_spec.example_weight_key:
+    if eval_config.metrics_specs:
+      # Legacy post_export_metric
+      default_column = weighted_example_count.WEIGHTED_EXAMPLE_COUNT_NAME
+    else:
+      default_column = metric_keys.EXAMPLE_WEIGHT
 
   return {
-      'weightedExamplesColumn':
-          weighted_example_column_to_use
-          if weighted_example_column_to_use else default_column
+      'weightedExamplesColumn': weighted_example_column_to_use
+      or default_column
   }
 
 
@@ -662,9 +655,7 @@ def convert_attributions_proto_to_dict(
         metric_name = '{}_diff'.format(kv.key.name)
       else:
         metric_name = kv.key.name
-      attributions = {}
-      for k in kv.values:
-        attributions[k] = json_format.MessageToDict(kv.values[k])
+      attributions = {k: json_format.MessageToDict(kv.values[k]) for k in kv.values}
       sub_key_metrics_map[sub_key_id][metric_name] = attributions
 
   metrics_map = None

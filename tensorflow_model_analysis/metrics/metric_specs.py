@@ -346,8 +346,7 @@ def default_regression_specs(
       calibration.MeanPrediction(name='mean_prediction'),
       calibration.Calibration(name='calibration'),
   ]
-  for fn in loss_functions:
-    metrics.append(fn)
+  metrics.extend(iter(loss_functions))
   if min_value is not None and max_value is not None:
     metrics.append(
         calibration_plot.CalibrationPlot(
@@ -539,12 +538,11 @@ def metric_keys_to_skip_for_confidence_intervals(
     metrics_specs: Iterable[config_pb2.MetricsSpec],
     eval_config: config_pb2.EvalConfig) -> FrozenSet[metric_types.MetricKey]:
   """Returns metric keys not to be displayed with confidence intervals."""
-  skipped_keys = []
-  for key, _, instance in keys_and_metrics_from_specs(eval_config,
-                                                      metrics_specs):
-    # if metric does not implement compute_confidence_interval, do not skip
-    if not getattr(instance, 'compute_confidence_interval', True):
-      skipped_keys.append(key)
+  skipped_keys = [
+      key for key, _, instance in keys_and_metrics_from_specs(
+          eval_config, metrics_specs)
+      if not getattr(instance, 'compute_confidence_interval', True)
+  ]
   return frozenset(skipped_keys)
 
 
@@ -577,8 +575,8 @@ def metric_thresholds_from_metrics_specs(
     # same process.
     slice_hash = slice_spec.SerializeToString() if slice_spec else None
     threshold_hash = threshold.SerializeToString()
-    if (not (key in existing and slice_hash in existing[key] and
-             threshold_hash in existing[key][slice_hash])):
+    if (key not in existing or slice_hash not in existing[key]
+        or threshold_hash not in existing[key][slice_hash]):
       if slice_hash not in existing[key]:
         existing[key][slice_hash] = {}
       existing[key][slice_hash][threshold_hash] = True
@@ -765,7 +763,7 @@ def to_computations(
                             sub_key=sub_key,
                             class_weights=class_weights,
                             example_weighted=example_weighted))
-                  elif aggregation_type.weighted_macro_average:
+                  else:
                     computations.extend(
                         aggregation.weighted_macro_average(
                             metric.get_config()['name'],
@@ -959,15 +957,14 @@ def _process_tfma_metrics_specs(
         shared_sub_keys = set()
       for aggregation_type, sub_keys in sub_keys_by_aggregation_type.items():
         class_weights = _class_weights(spec) if aggregation_type else None
-        is_macro = (
-            aggregation_type and (aggregation_type.macro_average or
-                                  aggregation_type.weighted_macro_average))
-        if is_macro:
+        if is_macro := (aggregation_type
+                        and (aggregation_type.macro_average
+                             or aggregation_type.weighted_macro_average)):
           updated_sub_keys = []
           for sub_key in sub_keys:
-            for key in _macro_average_sub_keys(sub_key, class_weights):
-              if key not in shared_sub_keys:
-                updated_sub_keys.append(key)
+            updated_sub_keys.extend(
+                key for key in _macro_average_sub_keys(sub_key, class_weights)
+                if key not in shared_sub_keys)
           if not updated_sub_keys:
             continue
           aggregation_type = aggregation_type if not is_macro else None
@@ -985,9 +982,10 @@ def _process_tfma_metrics_specs(
                   output_names=list(spec.output_names) or [''],
                   sub_keys=sub_keys,
                   aggregation_type=aggregation_type,
-                  class_weights=class_weights if class_weights else None,
+                  class_weights=class_weights or None,
                   example_weighted=example_weighted,
-                  query_key=spec.query_key))
+                  query_key=spec.query_key,
+              ))
   return result
 
 
@@ -1000,24 +998,26 @@ def _create_sub_keys(
   if spec.HasField('binarize'):
     sub_keys = []
     if spec.binarize.class_ids.values:
-      for v in spec.binarize.class_ids.values:
-        sub_keys.append(metric_types.SubKey(class_id=v))
+      sub_keys.extend(
+          metric_types.SubKey(class_id=v)
+          for v in spec.binarize.class_ids.values)
     if spec.binarize.k_list.values:
-      for v in spec.binarize.k_list.values:
-        sub_keys.append(metric_types.SubKey(k=v))
+      sub_keys.extend(metric_types.SubKey(k=v) for v in spec.binarize.k_list.values)
     if spec.binarize.top_k_list.values:
-      for v in spec.binarize.top_k_list.values:
-        sub_keys.append(metric_types.SubKey(top_k=v))
+      sub_keys.extend(
+          metric_types.SubKey(top_k=v)
+          for v in spec.binarize.top_k_list.values)
     if sub_keys:
       result[None] = sub_keys
   if spec.HasField('aggregate'):
-    sub_keys = []
-    for top_k in spec.aggregate.top_k_list.values:
-      sub_keys.append(metric_types.SubKey(top_k=top_k))
+    sub_keys = [
+        metric_types.SubKey(top_k=top_k)
+        for top_k in spec.aggregate.top_k_list.values
+    ]
     if not sub_keys:
       sub_keys = [None]
     result[_aggregation_type(spec)] = sub_keys
-  return result if result else {None: [None]}
+  return result or {None: [None]}
 
 
 def _macro_average_sub_keys(
@@ -1039,7 +1039,7 @@ def _macro_average_sub_keys(
           'class_weights are required in order to compute macro average over '
           'all classes: sub_key={}, class_weights={}'.format(
               sub_key, class_weights))
-    return [metric_types.SubKey(class_id=i) for i in class_weights.keys()]
+    return [metric_types.SubKey(class_id=i) for i in class_weights]
   elif sub_key.top_k:
     return [metric_types.SubKey(k=i + 1) for i in range(sub_key.top_k)]
   else:
@@ -1166,7 +1166,7 @@ def _private_tf_metric(
   """Creates a private version of given metric."""
   cfg = metric_util.serialize_metric(metric)
   if not cfg['config']['name'].startswith('_'):
-    cfg['config']['name'] = '_' + cfg['config']['name']
+    cfg['config']['name'] = f'_{cfg["config"]["name"]}'
   with tf.keras.utils.custom_object_scope(
       {metric.__class__.__name__: metric.__class__}):
     return tf.keras.metrics.deserialize(cfg)
@@ -1195,7 +1195,7 @@ def _private_tf_loss(loss: tf.keras.losses.Loss) -> tf.keras.losses.Loss:
   """Creates a private version of given loss."""
   cfg = metric_util.serialize_loss(loss)
   if not cfg['config']['name'].startswith('_'):
-    cfg['config']['name'] = '_' + cfg['config']['name']
+    cfg['config']['name'] = f'_{cfg["config"]["name"]}'
   with tf.keras.utils.custom_object_scope(
       {loss.__class__.__name__: loss.__class__}):
     return tf.keras.losses.deserialize(cfg)
@@ -1226,7 +1226,7 @@ def _private_tfma_metric(metric: metric_types.Metric) -> metric_types.Metric:
   """Creates a private version of given metric."""
   cfg = tf.keras.utils.serialize_keras_object(metric)
   if not cfg['config']['name'].startswith('_'):
-    cfg['config']['name'] = '_' + cfg['config']['name']
+    cfg['config']['name'] = f'_{cfg["config"]["name"]}'
   with tf.keras.utils.custom_object_scope(
       {metric.__class__.__name__: metric.__class__}):
     return tf.keras.utils.deserialize_keras_object(cfg)

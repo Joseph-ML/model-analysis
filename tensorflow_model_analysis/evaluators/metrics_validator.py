@@ -99,9 +99,8 @@ def validate_metrics(
     """Adds value to set. Returns true if didn't exist."""
     if v in s:
       return False
-    else:
-      s.add(v)
-      return True
+    s.add(v)
+    return True
 
   # Empty metrics per slice is considered validated.
   result = validation_result_pb2.ValidationResult(validation_ok=True)

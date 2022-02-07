@@ -58,9 +58,7 @@ def _make_slice_key(*args):
   if len(args) % 2 != 0:
     raise ValueError('number of arguments should be even')
 
-  result = []
-  for i in range(0, len(args), 2):
-    result.append((args[i], args[i + 1]))
+  result = [(args[i], args[i + 1]) for i in range(0, len(args), 2)]
   result = tuple(result)
   return result
 

@@ -77,7 +77,7 @@ def render_time_series(
   """
   if slicing_spec and isinstance(slicing_spec, config_pb2.SlicingSpec):
     slicing_spec = slicer.SingleSliceSpec(spec=slicing_spec)
-  slice_spec_to_use = slicing_spec if slicing_spec else slicer.SingleSliceSpec()
+  slice_spec_to_use = slicing_spec or slicer.SingleSliceSpec()
   data = util.get_time_series(results, slice_spec_to_use, display_full_path)
   cfg = {'isModelCentric': results.get_mode() == constants.MODEL_CENTRIC_MODE}
 
@@ -111,7 +111,7 @@ def render_plot(
   """
   if slicing_spec and isinstance(slicing_spec, config_pb2.SlicingSpec):
     slicing_spec = slicer.SingleSliceSpec(spec=slicing_spec)
-  slice_spec_to_use = slicing_spec if slicing_spec else slicer.SingleSliceSpec()
+  slice_spec_to_use = slicing_spec or slicer.SingleSliceSpec()
   data, cfg = util.get_plot_data_and_config(result.plots, slice_spec_to_use,
                                             output_name, class_id, top_k, k,
                                             label)

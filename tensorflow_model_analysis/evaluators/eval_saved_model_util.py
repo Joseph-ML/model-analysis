@@ -82,10 +82,12 @@ def _metrics_by_output_name(
     if output_name not in result:
       result[output_name] = {}
     result[output_name][name[:index]] = value
-  for output_name, values in result.items():
-    if len(values) <= 2:
-      return {'': metrics}
-  return result
+  return next(
+      ({
+          '': metrics
+      } for output_name, values in result.items() if len(values) <= 2),
+      result,
+  )
 
 
 # TODO(b/171992041): Clean up by removing this and share logic with
@@ -208,22 +210,20 @@ class _EvalSavedModelCombiner(model_util.CombineFnWithModels):
 
     if self._eval_metrics_graph is None:
       self._eval_metrics_graph = self._loaded_models[self._model_name]
-    if force or accumulator.should_flush():
-      if accumulator.inputs:
-        self._batch_size_beam_metric.update(len(accumulator.inputs))
-        self._total_input_byte_size_beam_metric.update(
-            accumulator.size_estimator.get_estimate())
-        inputs_for_metrics = accumulator.inputs
-        if inputs_for_metrics:
-          accumulator.add_metrics_variables(
-              self._eval_metrics_graph.metrics_reset_update_get_list(
-                  inputs_for_metrics))
-        else:
-          # Call to metrics_reset_update_get_list does a reset prior to the
-          # metrics update, but does not handle empty updates. Explicitly
-          # calling just reset here, to make the flow clear.
-          self._eval_metrics_graph.reset_metric_variables()
-        accumulator.clear_inputs()
+    if (force or accumulator.should_flush()) and accumulator.inputs:
+      self._batch_size_beam_metric.update(len(accumulator.inputs))
+      self._total_input_byte_size_beam_metric.update(
+          accumulator.size_estimator.get_estimate())
+      if inputs_for_metrics := accumulator.inputs:
+        accumulator.add_metrics_variables(
+            self._eval_metrics_graph.metrics_reset_update_get_list(
+                inputs_for_metrics))
+      else:
+        # Call to metrics_reset_update_get_list does a reset prior to the
+        # metrics update, but does not handle empty updates. Explicitly
+        # calling just reset here, to make the flow clear.
+        self._eval_metrics_graph.reset_metric_variables()
+      accumulator.clear_inputs()
 
   def create_accumulator(self) -> _AggState:
     return _AggState(desired_batch_size=self._desired_batch_size)

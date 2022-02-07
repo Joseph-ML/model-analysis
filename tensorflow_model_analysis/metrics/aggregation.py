@@ -125,18 +125,19 @@ def macro_average(
       if child_key not in metrics:
         # Use private name if not found under metric name
         child_key = metric_types.MetricKey(
-            name='_' + metric_name,
+            name=f'_{metric_name}',
             model_name=model_name,
             output_name=output_name,
             sub_key=sub_key,
-            example_weighted=example_weighted)
+            example_weighted=example_weighted,
+        )
       weight = 1.0 if not class_weights else 0.0
       offset = None
-      if (child_key.sub_key is not None and
-          child_key.sub_key.class_id is not None):
-        offset = child_key.sub_key.class_id
-      elif child_key.sub_key is not None and child_key.sub_key.k is not None:
-        offset = child_key.sub_key.k
+      if child_key.sub_key is not None:
+        if child_key.sub_key.class_id is not None:
+          offset = child_key.sub_key.class_id
+        elif child_key.sub_key.k is not None:
+          offset = child_key.sub_key.k
       if offset is not None and offset in class_weights:
         weight = class_weights[offset]
       total_value += _to_float(metrics[child_key]) * weight
@@ -216,18 +217,19 @@ def weighted_macro_average(
       if child_key not in metrics:
         # Use private name if not found under metric name
         child_key = metric_types.MetricKey(
-            name='_' + metric_name,
+            name=f'_{metric_name}',
             model_name=model_name,
             output_name=output_name,
             sub_key=sub_key,
-            example_weighted=example_weighted)
+            example_weighted=example_weighted,
+        )
       weight = 1.0 if not class_weights else 0.0
       offset = None
-      if (child_key.sub_key is not None and
-          child_key.sub_key.class_id is not None):
-        offset = child_key.sub_key.class_id
-      elif child_key.sub_key is not None and child_key.sub_key.k is not None:
-        offset = child_key.sub_key.k
+      if child_key.sub_key is not None:
+        if child_key.sub_key.class_id is not None:
+          offset = child_key.sub_key.class_id
+        elif child_key.sub_key.k is not None:
+          offset = child_key.sub_key.k
       if offset is not None:
         if (class_weights_from_labels and
             child_key.sub_key.class_id in class_weights_from_labels):
@@ -315,17 +317,17 @@ class _ClassWeightsFromLabelsCombiner(beam.CombineFn):
             flatten=False,
             allow_none=True,
             require_single_example_weight=True)):
-      example_weight = float(example_weight)
       if label is not None:
+        example_weight = float(example_weight)
         for class_id in self._class_ids:
           if label.size == 1:
             label_value = float(label.item() == class_id)
+          elif class_id >= len(label):
+            raise ValueError(
+                'class_id {} used with weighted_macro_average is outside the '
+                'range of the label provided: label={}, '
+                'StandardMetricInput={}'.format(class_id, label, element))
           else:
-            if class_id >= len(label):
-              raise ValueError(
-                  'class_id {} used with weighted_macro_average is outside the '
-                  'range of the label provided: label={}, '
-                  'StandardMetricInput={}'.format(class_id, label, element))
             label_value = float(label[class_id])
           accumulator[class_id] += label_value * example_weight
     return accumulator
@@ -342,7 +344,7 @@ class _ClassWeightsFromLabelsCombiner(beam.CombineFn):
   def extract_output(
       self, accumulator: Dict[int, float]
   ) -> Dict[metric_types.MetricKey, Dict[int, float]]:
-    total = sum(v for v in accumulator.values())
+    total = sum(accumulator.values())
     class_weights = {
         k: (v / total) if total else 0.0 for k, v in accumulator.items()
     }

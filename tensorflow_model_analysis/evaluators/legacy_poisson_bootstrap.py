@@ -188,8 +188,7 @@ def _calculate_t_distribution(  # pylint: disable=invalid-name
     sampling_data_list = [
         data for data in sampling_data_list if not np.isnan(data)
     ]
-    n_samples = len(sampling_data_list)
-    if n_samples:
+    if n_samples := len(sampling_data_list):
       sample_mean = np.mean(sampling_data_list)
       sample_std = np.std(sampling_data_list, ddof=1)
       return types.ValueWithTDistribution(sample_mean, sample_std,

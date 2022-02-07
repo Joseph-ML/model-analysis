@@ -140,10 +140,9 @@ def _lift_metrics(
     comparison_num_examples = 0.0
 
     for bucket_id in bucket_ids:
-      if ignore_out_of_bound_examples:
-        # Ignore buckets having examples with out of bound label values.
-        if bucket_id <= 0 or bucket_id > num_buckets:
-          continue
+      if ignore_out_of_bound_examples and (bucket_id <= 0
+                                           or bucket_id > num_buckets):
+        continue
       num_examples = 0.0
       if bucket_id in comparison_bucket:
         num_examples = comparison_bucket[bucket_id].weighted_examples

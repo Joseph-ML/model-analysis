@@ -38,11 +38,9 @@ def _addExampleCountMetricCallback(  # pylint: disable=invalid-name
     features_dict, predictions_dict, labels_dict):
   del features_dict
   del labels_dict
-  metric_ops = {}
   value_op, update_op = metric_fns.total(
       tf.shape(input=predictions_dict['logits'])[0])
-  metric_ops['added_example_count'] = (value_op, update_op)
-  return metric_ops
+  return {'added_example_count': (value_op, update_op)}
 
 
 def _addPyFuncMetricCallback(  # pylint: disable=invalid-name
@@ -178,9 +176,7 @@ class EvaluateMetricsAndPlotsTest(testutil.TensorflowModelAnalysisTest):
         def check_result(got):
           try:
             self.assertEqual(3, len(got), 'got: %s' % got)
-            slices = {}
-            for slice_key, value in got:
-              slices[slice_key] = value
+            slices = dict(got)
             overall_slice = ()
             first_slice = (('slice_key', 'first_slice'),)
             second_slice = (('slice_key', 'second_slice'),)
@@ -269,9 +265,7 @@ class EvaluateMetricsAndPlotsTest(testutil.TensorflowModelAnalysisTest):
         def check_result(got):
           try:
             self.assertEqual(3, len(got), 'got: %s' % got)
-            slices = {}
-            for slice_key, value in got:
-              slices[slice_key] = value
+            slices = dict(got)
             overall_slice = ()
             first_slice = (('slice_key', 'first_slice'),)
             second_slice = (('slice_key', 'second_slice'),)

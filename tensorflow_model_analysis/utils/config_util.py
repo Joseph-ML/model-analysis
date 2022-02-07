@@ -152,10 +152,10 @@ def update_eval_config_with_defaults(
 
   # Does not have a baseline.
   if maybe_remove_baseline:
-    tmp_model_specs = []
-    for model_spec in updated_config.model_specs:
-      if not model_spec.is_baseline:
-        tmp_model_specs.append(model_spec)
+    tmp_model_specs = [
+        model_spec for model_spec in updated_config.model_specs
+        if not model_spec.is_baseline
+    ]
     del updated_config.model_specs[:]
     updated_config.model_specs.extend(tmp_model_specs)
     for metrics_spec in updated_config.metrics_specs:
@@ -188,9 +188,7 @@ def update_eval_config_with_defaults(
   if not updated_config.model_specs:
     updated_config.model_specs.add()
 
-  model_names = []
-  for spec in updated_config.model_specs:
-    model_names.append(spec.name)
+  model_names = [spec.name for spec in updated_config.model_specs]
   if len(model_names) == 1 and model_names[0]:
     logging.info(
         'ModelSpec name "%s" is being ignored and replaced by "" because a '

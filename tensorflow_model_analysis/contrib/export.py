@@ -64,8 +64,8 @@ def _make_observing_layer_call(old_call_fn: Callable[..., Any], key_prefix: str,
         features=features,
         cols_to_output_tensors=local_cols_to_output_tensors)
     output_dict[key_prefix + '_features'] = dict(features)
-    output_dict[key_prefix +
-                '_cols_to_output_tensors'] = dict(local_cols_to_output_tensors)
+    output_dict[f'{key_prefix}_cols_to_output_tensors'] = dict(
+        local_cols_to_output_tensors)
     return result
 
   return observing_call

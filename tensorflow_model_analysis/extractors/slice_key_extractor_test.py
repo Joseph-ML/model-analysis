@@ -27,10 +27,7 @@ from tensorflow_model_analysis.slicer import slicer_lib as slicer
 
 
 def make_features_dict(features_dict):
-  result = {}
-  for key, value in features_dict.items():
-    result[key] = {'node': np.array(value)}
-  return result
+  return {key: {'node': np.array(value)} for key, value in features_dict.items()}
 
 
 def create_fpls():
