@@ -89,8 +89,8 @@ def _AugmentExtracts(data: Dict[str, Any], prefix: str, excludes: List[bytes],
 
     else:
       raise TypeError(
-          'Dictionary item with key %s, value %s had unexpected type %s' %
-          (name, val, type(val)))
+          f'Dictionary item with key {name}, value {val} had unexpected type {type(val)}'
+      )
 
 
 def _ParseExample(extracts: types.Extracts,

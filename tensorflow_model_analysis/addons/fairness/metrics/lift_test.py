@@ -71,11 +71,9 @@ class LiftTest(testutil.TensorflowModelAnalysisTest, parameterized.TestCase):
           slice_1, metric_1 = got[0]
           slice_2, metric_2 = got[1]
           lift_value = None
-          if not slice_1:
-            lift_value = lift_metrics.cross_slice_comparison(metric_1, metric_2)
-          else:
-            lift_value = lift_metrics.cross_slice_comparison(metric_2, metric_1)
-
+          lift_value = (lift_metrics.cross_slice_comparison(metric_2, metric_1)
+                        if slice_1 else lift_metrics.cross_slice_comparison(
+                            metric_1, metric_2))
           self.assertDictElementsAlmostEqual(
               lift_value, {
                   metric_types.MetricKey(

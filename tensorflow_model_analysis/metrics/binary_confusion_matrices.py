@@ -399,14 +399,14 @@ def _histogram_to_binary_confusion_matrices(
     start = i
     end = n - i - 1
     start_pos = histogram[start].weighted_labels
-    start_neg = (
-        histogram[start].weighted_examples - histogram[start].weighted_labels)
     end_pos = histogram[end].weighted_labels
     end_neg = (
         histogram[end].weighted_examples - histogram[end].weighted_labels)
     tp[end] = tp[end + 1] + end_pos if end < n - 1 else end_pos
     fp[end] = fp[end + 1] + end_neg if end < n - 1 else end_neg
     if start + 1 < n:
+      start_neg = (
+          histogram[start].weighted_examples - histogram[start].weighted_labels)
       tn[start + 1] = tn[start] + start_neg
       fn[start + 1] = fn[start] + start_pos
   # Check if need to remove -epsilon bucket (or reset back to 1 bucket).

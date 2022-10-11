@@ -83,7 +83,7 @@ class MetaFeatureExtractorTest(testutil.TensorflowModelAnalysisTest):
 
       def check_result(got):
         try:
-          self.assertEqual(2, len(got), 'got: %s' % got)
+          self.assertEqual(2, len(got), f'got: {got}')
           for res in got:
             self.assertIn(
                 'num_interests',
@@ -136,7 +136,7 @@ class MetaFeatureExtractorTest(testutil.TensorflowModelAnalysisTest):
 
       def check_result(got):
         try:
-          self.assertEqual(4, len(got), 'got: %s' % got)
+          self.assertEqual(4, len(got), f'got: {got}')
           expected_slice_keys = [
               (),
               (),

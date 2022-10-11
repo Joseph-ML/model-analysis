@@ -278,8 +278,8 @@ def _additional_prediction_keys(
     if tensor_index is not None:
       suffix = '_%d' % tensor_index
       if metric_tag.endswith(suffix):
-        additional_keys.append('%s/%s' % (metric_tag[:-len(suffix)], key))
-    additional_keys.append('%s/%s' % (metric_tag, key))
+        additional_keys.append(f'{metric_tag[:-len(suffix)]}/{key}')
+    additional_keys.append(f'{metric_tag}/{key}')
   return additional_keys
 
 
@@ -426,12 +426,12 @@ class _PostExportMetric(object, metaclass=abc.ABCMeta):
     predictions_tensor = _get_target_tensor(predictions_dict,
                                             self._target_prediction_keys)
     if predictions_tensor is None:
-      raise KeyError('Cannot find any of %s in predictions_dict %s.' %
-                     (self._target_prediction_keys, predictions_dict))
+      raise KeyError(
+          f'Cannot find any of {self._target_prediction_keys} in predictions_dict {predictions_dict}.'
+      )
     labels_tensor = _get_target_tensor(labels_dict, [self._labels_key])
     if labels_tensor is None:
-      raise KeyError('Cannot find %s in labels_dict %s.' %
-                     (self._labels_key, labels_dict))
+      raise KeyError(f'Cannot find {self._labels_key} in labels_dict {labels_dict}.')
 
     # Convert string labels
     if labels_tensor.dtype == tf.string:
@@ -1176,9 +1176,8 @@ def _set_output_matrix_field(matrix_entry, output_matrix, field_name):
     field_name: The name of the double_value field to set.
   """
   # Set TDistributionValue fields.
-  t_distribution_value = getattr(output_matrix,
-                                 't_distribution_%s' % field_name)
-  bounded_value = getattr(output_matrix, 'bounded_%s' % field_name)
+  t_distribution_value = getattr(output_matrix, f't_distribution_{field_name}')
+  bounded_value = getattr(output_matrix, f'bounded_{field_name}')
   if isinstance(matrix_entry, types.ValueWithTDistribution):
     t_distribution_value.sample_mean.value = matrix_entry.sample_mean
     t_distribution_value.sample_standard_deviation.value = matrix_entry.sample_standard_deviation
@@ -1406,7 +1405,7 @@ class _Auc(_PostExportMetric):
     elif curve == 'PR':
       self._metric_name = metric_keys.AUPRC
     else:
-      raise ValueError('got unsupported curve: %s' % curve)
+      raise ValueError(f'got unsupported curve: {curve}')
     super().__init__(
         target_prediction_keys=target_prediction_keys,
         labels_key=labels_key,
@@ -1575,8 +1574,8 @@ class _PrecisionRecallAtK(_PostExportMetric):
       labels_dict = labels_dict[self._labels_key]
 
     if not util.is_tensorflow_tensor(labels_dict):
-      raise TypeError('labels_dict should be a tensor. labels_dict was: %s' %
-                      labels_dict)
+      raise TypeError(
+          f'labels_dict should be a tensor. labels_dict was: {labels_dict}')
     _check_feature_present(features_dict, self._example_weight_key)
 
   def get_metric_ops(
@@ -1625,11 +1624,9 @@ class _PrecisionRecallAtK(_PostExportMetric):
           default=lambda: classes)
 
     if classes is None:
-      raise ValueError('Could not determine classes for use with '
-                       'PrecisionRecallAtK. The classes_key ({}) could'
-                       'not be found in predictions dict ({}) and the metric '
-                       'was not configured to use ALL_CLASSES.'.format(
-                           self._classes_keys, predictions_dict))
+      raise ValueError(
+          f'Could not determine classes for use with PrecisionRecallAtK. The classes_key ({self._classes_keys}) couldnot be found in predictions dict ({predictions_dict}) and the metric was not configured to use ALL_CLASSES.'
+      )
     labels = _cast_or_convert(labels, classes.dtype)
 
     if self._metric_name == metric_keys.PRECISION_AT_K:

@@ -65,7 +65,7 @@ class ModelAgnosticExtractorTest(testutil.TensorflowModelAnalysisTest):
 
       def check_result(got):
         try:
-          self.assertEqual(4, len(got), 'got: %s' % got)
+          self.assertEqual(4, len(got), f'got: {got}')
           for item in got:
             self.assertIn(constants.FEATURES_PREDICTIONS_LABELS_KEY, item)
             fpl = item[constants.FEATURES_PREDICTIONS_LABELS_KEY]

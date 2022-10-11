@@ -112,7 +112,7 @@ class EvaluateMetricsAndPlotsTest(testutil.TensorflowModelAnalysisTest):
 
       def check_result(got):
         try:
-          self.assertEqual(1, len(got), 'got: %s' % got)
+          self.assertEqual(1, len(got), f'got: {got}')
           (slice_key, value) = got[0]
           self.assertEqual((), slice_key)
           self.assertDictElementsAlmostEqual(
@@ -175,7 +175,7 @@ class EvaluateMetricsAndPlotsTest(testutil.TensorflowModelAnalysisTest):
 
         def check_result(got):
           try:
-            self.assertEqual(3, len(got), 'got: %s' % got)
+            self.assertEqual(3, len(got), f'got: {got}')
             slices = dict(got)
             overall_slice = ()
             first_slice = (('slice_key', 'first_slice'),)
@@ -264,7 +264,7 @@ class EvaluateMetricsAndPlotsTest(testutil.TensorflowModelAnalysisTest):
 
         def check_result(got):
           try:
-            self.assertEqual(3, len(got), 'got: %s' % got)
+            self.assertEqual(3, len(got), f'got: {got}')
             slices = dict(got)
             overall_slice = ()
             first_slice = (('slice_key', 'first_slice'),)
@@ -345,7 +345,7 @@ class EvaluateMetricsAndPlotsTest(testutil.TensorflowModelAnalysisTest):
 
       def check_result(got):
         try:
-          self.assertEqual(1, len(got), 'got: %s' % got)
+          self.assertEqual(1, len(got), f'got: {got}')
           (slice_key, value) = got[0]
           self.assertEqual((), slice_key)
           self.assertDictElementsAlmostEqual(
@@ -402,7 +402,7 @@ class EvaluateMetricsAndPlotsTest(testutil.TensorflowModelAnalysisTest):
 
       def check_result(got):
         try:
-          self.assertEqual(1, len(got), 'got: %s' % got)
+          self.assertEqual(1, len(got), f'got: {got}')
           (slice_key, value) = got[0]
           self.assertEqual((), slice_key)
           self.assertDictElementsAlmostEqual(
@@ -455,7 +455,7 @@ class EvaluateMetricsAndPlotsTest(testutil.TensorflowModelAnalysisTest):
 
       def check_metrics(got):
         try:
-          self.assertEqual(1, len(got), 'got: %s' % got)
+          self.assertEqual(1, len(got), f'got: {got}')
           (slice_key, value) = got[0]
           self.assertEqual((), slice_key)
           self.assertDictElementsAlmostEqual(
@@ -470,16 +470,16 @@ class EvaluateMetricsAndPlotsTest(testutil.TensorflowModelAnalysisTest):
 
       def check_plots(got):
         try:
-          self.assertEqual(1, len(got), 'got: %s' % got)
+          self.assertEqual(1, len(got), f'got: {got}')
           (slice_key, value) = got[0]
           self.assertEqual((), slice_key)
           self.assertDictMatrixRowsAlmostEqual(
               got_values_dict=value,
               expected_values_dict={
-                  metric_keys.AUC_PLOTS_MATRICES: [
-                      (8001, [2, 1, 0, 1, 1.0 / 1.0, 1.0 / 3.0])
-                  ],
-              })
+                  metric_keys.AUC_PLOTS_MATRICES:
+                  [(8001, [2, 1, 0, 1, 1.0, 1.0 / 3.0])]
+              },
+          )
         except AssertionError as err:
           raise util.BeamAssertException(err)
 

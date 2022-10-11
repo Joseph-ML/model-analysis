@@ -326,10 +326,13 @@ class ModelUtilTest(testutil.TensorflowModelAnalysisTest,
         'f2': tf.constant([[1], [2]], dtype=tf.int64),
         'f3': tf.constant([['hello'], ['world']], dtype=tf.string)
     }
-    filtered_tensors = model_util.filter_by_input_names(tensors, [
-        'f1' + model_util.KERAS_INPUT_SUFFIX,
-        'f3' + model_util.KERAS_INPUT_SUFFIX
-    ])
+    filtered_tensors = model_util.filter_by_input_names(
+        tensors,
+        [
+            f'f1{model_util.KERAS_INPUT_SUFFIX}',
+            f'f3{model_util.KERAS_INPUT_SUFFIX}',
+        ],
+    )
     self.assertLen(filtered_tensors, 2)
     self.assertAllEqual(
         tf.constant([[1.1], [2.1]], dtype=tf.float32),

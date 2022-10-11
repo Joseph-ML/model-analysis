@@ -184,13 +184,11 @@ class _MultiLabelConfusionMatrixPlotCombiner(beam.CombineFn):
             require_single_example_weight=True))
     if not labels.shape:
       raise ValueError(
-          'Labels missing from example: StandardMetricInputs={}'.format(
-              element))
+          f'Labels missing from example: StandardMetricInputs={element}')
     if predictions.shape in ((), (1,)):
       raise ValueError(
-          'Predictions shape must be > 1 for multi-label confusion matrix: '
-          'shape={}, StandardMetricInputs={}'.format(predictions.shape,
-                                                     element))
+          f'Predictions shape must be > 1 for multi-label confusion matrix: shape={predictions.shape}, StandardMetricInputs={element}'
+      )
     # If the label and prediction shapes are different then assume the labels
     # are sparse and convert them to dense.
     if (len(labels.shape) != len(predictions.shape) or

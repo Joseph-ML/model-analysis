@@ -165,12 +165,12 @@ def classifier_extra_metrics(features, labels, predictions):
             tf.compat.v1.metrics.mean(features['age']),
     }
     if labels.dtype != tf.string:
-      metrics.update({
+      metrics |= {
           'my_mean_label':
-              tf.compat.v1.metrics.mean(labels),
+          tf.compat.v1.metrics.mean(labels),
           'my_mean_age_times_label':
-              tf.compat.v1.metrics.mean(labels * features['age']),
-      })
+          tf.compat.v1.metrics.mean(labels * features['age']),
+      }
     return metrics
   # Logistic won't be present in multiclass cases.
   return {

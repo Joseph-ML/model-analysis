@@ -159,16 +159,17 @@ def render_slicing_attributions(
         updated_data[output_name][sub_key] = {}
         if metric_name:
           if metric_name not in per_sub_key_items:
-            raise ValueError('metric_name={} not found in {}'.format(
-                metric_name, per_sub_key_items.keys()))
+            raise ValueError(
+                f'metric_name={metric_name} not found in {per_sub_key_items.keys()}'
+            )
           updated_data[output_name][sub_key] = per_sub_key_items[metric_name]
         elif len(per_sub_key_items) == 1:
           updated_data[output_name][sub_key] = list(
               per_sub_key_items.values())[0]
         else:
           raise ValueError(
-              'metric_name must be one of the following: {}'.format(
-                  per_sub_key_items.keys()))
+              f'metric_name must be one of the following: {per_sub_key_items.keys()}'
+          )
     d['metrics'] = updated_data
 
   cfg = util.get_slicing_config(result.config, weighted_example_column)

@@ -217,7 +217,7 @@ class ModelAgnosticEvaluateGraphTest(testutil.TensorflowModelAnalysisTest):
 
       # Verify our metrics are properly generated per slice.
       def check_result(got):
-        self.assertEqual(3, len(got), 'got: %s' % got)
+        self.assertEqual(3, len(got), f'got: {got}')
         slices = dict(got)
         overall_slice = ()
         english_slice = (('language', 'english'),)

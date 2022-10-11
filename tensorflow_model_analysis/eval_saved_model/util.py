@@ -67,7 +67,7 @@ def wrap_tensor_or_dict_of_tensors_in_identity(
           values=tf.identity(tensor.values),
           dense_shape=tf.identity(tensor.dense_shape))
     else:
-      raise ValueError('could not wrap Tensor %s in identity' % str(tensor))
+      raise ValueError(f'could not wrap Tensor {str(tensor)} in identity')
 
   if isinstance(tensor_or_dict_of_tensors, dict):
     result = {}
@@ -132,8 +132,7 @@ def make_example(**kwargs) -> example_pb2.Example:
             'field %s was a list, but the first element had '
             'unknown type %s' % key, type(value[0]))
     else:
-      raise TypeError('unrecognised type for field %s: type %s' %
-                      (key, type(value)))
+      raise TypeError(f'unrecognised type for field {key}: type {type(value)}')
   return result
 
 
@@ -204,8 +203,8 @@ def _dense_concat_rows(arrays: List[np.ndarray]) -> np.ndarray:
   for array in arrays:
     if array.shape[0] != 1:
       raise ValueError(
-          'each array should only have one row, but %s had shape %s' %
-          (array, array.shape))
+          f'each array should only have one row, but {array} had shape {array.shape}'
+      )
     # We use concatenation instead of padding because np.concatenate is much
     # faster than np.pad: see
     # https://stackoverflow.com/questions/12668027/
@@ -280,13 +279,12 @@ def _sparse_concat_rows(
       _copy_shape_zero_rows(sparse_tensor_values[0].values.shape),
       dtype=sparse_tensor_values[0].values.dtype)
 
-  indices = []
-
   # Make a copy here, so that in the case that we don't take any amaxes
   # in the loop below, we'll still be mutating a copy (rather than the original)
   # when we update the row size.
   dense_shape_max = np.array(sparse_tensor_values[0].dense_shape)
   values = []
+  indices = []
   for row, sparse_tensor in enumerate(sparse_tensor_values):
     # Make a copy, so we can mutate it.
     cur_indices = np.array(sparse_tensor.indices)
@@ -298,8 +296,8 @@ def _sparse_concat_rows(
     values.extend(sparse_tensor.values)
     if sparse_tensor.dense_shape[0] != 1:
       raise ValueError(
-          'each sparse_tensor_value should only have one row, but %s had '
-          'shape %s' % (sparse_tensor, sparse_tensor.dense_shape))
+          f'each sparse_tensor_value should only have one row, but {sparse_tensor} had shape {sparse_tensor.dense_shape}'
+      )
     dense_shape_max = np.amax([dense_shape_max, sparse_tensor.dense_shape],
                               axis=0)
 
@@ -381,13 +379,8 @@ def _sparse_slice_rows(
     # We treat each split SparseTensorValue as having dense_shape equal to the
     # maximum index in each dimension (+1 for zero-index).
     if indices:
-      dense_shape[1:] = [
-          max([index[i]
-               for index in indices]) + 1
-          for i in range(1, len(indices[0]))
-      ]
-    # For empty examples, we should have 0 in all other dimensions for the
-    # dense_shape.
+      dense_shape[1:] = [(max(index[i] for index in indices) + 1)
+                         for i in range(1, len(indices[0]))]
     else:
       dense_shape[1:] = [0] * (len(original_dense_shape) - 1)
 
@@ -399,7 +392,7 @@ def _sparse_slice_rows(
             values=(np.array(values, dtype=empty_values_with_shape.dtype)
                     if values else empty_values_with_shape),
             dense_shape=np.array(dense_shape)))
-    # pylint: enable=g-long-ternary
+      # pylint: enable=g-long-ternary
 
   return result
 
@@ -430,8 +423,9 @@ def split_tensor_value(
       # The result value's shape must match the shape of `tensor_value`.
       return np.zeros_like(tensor_value)
   else:
-    raise TypeError('tensor_value had unknown type: %s, value was: %s' %
-                    (type(tensor_value), tensor_value))
+    raise TypeError(
+        f'tensor_value had unknown type: {type(tensor_value)}, value was: {tensor_value}'
+    )
 
 
 def merge_tensor_values(
@@ -465,8 +459,9 @@ def merge_tensor_values(
   elif isinstance(tensor_values[0], np.ndarray):
     return _dense_concat_rows(tensor_values)
   else:
-    raise TypeError('tensor_values[0] had unknown type: %s, value was: %s' %
-                    (type(tensor_values[0]), tensor_values[0]))
+    raise TypeError(
+        f'tensor_values[0] had unknown type: {type(tensor_values[0])}, value was: {tensor_values[0]}'
+    )
 
 
 def add_build_data_collection():

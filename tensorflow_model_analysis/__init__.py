@@ -13,6 +13,7 @@
 # limitations under the License.
 """Init module for TensorFlow Model Analysis."""
 
+
 ################################################################################
 # This file acts as the public API for root-level interfaces. It should only
 # include imports that are either in the root directory itself or under the api/
@@ -160,7 +161,7 @@ try:
 
 except ImportError as err:
   import sys
-  sys.stderr.write('Error importing: {}'.format(err))
+  sys.stderr.write(f'Error importing: {err}')
 # pylint: enable=g-statement-before-imports
 # pylint: enable=g-import-not-at-top
 

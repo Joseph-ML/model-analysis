@@ -40,7 +40,7 @@ _BYTES_KEY_PREFIX = b'$Bytes$'
 
 
 def with_suffix(name: str, suffix: str) -> str:
-  return '%s/%s' % (name, suffix)  # pytype: disable=bad-return-type
+  return f'{name}/{suffix}'
 
 
 def encode_key(key: types.FPLKeyType) -> bytes:
@@ -78,8 +78,7 @@ def encode_key(key: types.FPLKeyType) -> bytes:
   elif isinstance(key, (bytes, str)):
     return b'$Bytes$' + tf.compat.as_bytes(key)
   else:
-    raise TypeError('key has unrecognised type: type: %s, value %s' %
-                    (type(key), key))
+    raise TypeError(f'key has unrecognised type: type: {type(key)}, value {key}')
 
 
 def decode_key(encoded_key: bytes) -> types.FPLKeyType:
@@ -97,11 +96,11 @@ def decode_key(encoded_key: bytes) -> types.FPLKeyType:
   if encoded_key.startswith(_TUPLE_KEY_PREFIX):
     parts = encoded_key[len(_TUPLE_KEY_PREFIX):].split(b'$', 1)
     if len(parts) != 2:
-      raise ValueError('invalid encoding: %s' % encoded_key)
+      raise ValueError(f'invalid encoding: {encoded_key}')
     elem_count = int(parts[0])
     parts = parts[1].split(b'$', elem_count)
     if len(parts) != elem_count + 1:
-      raise ValueError('invalid encoding: %s' % encoded_key)
+      raise ValueError(f'invalid encoding: {encoded_key}')
     lengths = map(int, parts[:elem_count])
     parts = parts[elem_count]
     elems = []
@@ -112,7 +111,7 @@ def decode_key(encoded_key: bytes) -> types.FPLKeyType:
   elif encoded_key.startswith(_BYTES_KEY_PREFIX):
     return encoded_key[len(_BYTES_KEY_PREFIX):].decode('utf8')
   else:
-    raise ValueError('invalid encoding: %s' % encoded_key)
+    raise ValueError(f'invalid encoding: {encoded_key}')
 
 
 def encode_tensor_node(node: types.TensorType) -> any_pb2.Any:

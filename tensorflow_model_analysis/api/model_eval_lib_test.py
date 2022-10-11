@@ -120,19 +120,22 @@ class EvaluateTest(testutil.TensorflowModelAnalysisTest,
     self.assertCountEqual(
         list(expected_metrics.keys()),
         list(got_metrics.keys()),
-        msg='keys do not match. expected_metrics: %s, got_metrics: %s' %
-        (expected_metrics, got_metrics))
+        msg=
+        f'keys do not match. expected_metrics: {expected_metrics}, got_metrics: {got_metrics}',
+    )
     for key in expected_metrics.keys():
       self.assertProtoEquals(
           expected_metrics[key],
           got_metrics[key],
-          msg='value for key %s does not match' % key)
+          msg=f'value for key {key} does not match',
+      )
 
   def assertSliceListEqual(self, expected_list, got_list, value_assert_fn):
     self.assertEqual(
         len(expected_list),
         len(got_list),
-        msg='expected_list: %s, got_list: %s' % (expected_list, got_list))
+        msg=f'expected_list: {expected_list}, got_list: {got_list}',
+    )
     for index, (expected, got) in enumerate(zip(expected_list, got_list)):
       (expected_key, expected_value) = expected
       (got_key, got_value) = got

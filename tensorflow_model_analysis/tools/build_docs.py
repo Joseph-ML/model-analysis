@@ -118,9 +118,6 @@ def _should_suppress(obj, full_name):
 
   if not hasattr(obj, '__module__'):
     obj = obj.__class__
-  if not obj.__module__:
-    return False
-
   return False
 
 

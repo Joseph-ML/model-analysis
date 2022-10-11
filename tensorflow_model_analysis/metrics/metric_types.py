@@ -53,13 +53,13 @@ class SubKey(
               k: Optional[int] = None,
               top_k: Optional[int] = None):
     if sum(0 if v is None else 1 for v in (class_id, k, top_k)) > 1:
-      raise ValueError('only one of class_id, k, or top_k should be used: '
-                       'class_id={}, k={}, top_k={}'.format(class_id, k, top_k))
-    if k is not None and k < 1:
-      raise ValueError('attempt to create metric with k < 1: k={}'.format(k))
-    if top_k is not None and top_k < 1:
       raise ValueError(
-          'attempt to create metric with top_k < 1: top_k={}'.format(top_k))
+          f'only one of class_id, k, or top_k should be used: class_id={class_id}, k={k}, top_k={top_k}'
+      )
+    if k is not None and k < 1:
+      raise ValueError(f'attempt to create metric with k < 1: k={k}')
+    if top_k is not None and top_k < 1:
+      raise ValueError(f'attempt to create metric with top_k < 1: top_k={top_k}')
     return super(SubKey, cls).__new__(cls, class_id, k, top_k)
 
   # ThenChange(../api/model_eval_lib.py)
@@ -77,11 +77,11 @@ class SubKey(
 
   def __str__(self) -> str:
     if self.class_id is not None:
-      return 'classId:' + str(self.class_id)
+      return f'classId:{str(self.class_id)}'
     elif self.k is not None:
-      return 'k:' + str(self.k)
+      return f'k:{str(self.k)}'
     elif self.top_k is not None:
-      return 'topK:' + str(self.top_k)
+      return f'topK:{str(self.top_k)}'
     else:
       raise NotImplementedError(
           ('A non-existent SubKey should be represented as None, not as ',
@@ -138,10 +138,8 @@ class AggregationType(
         weighted_macro_average or False
     ]) > 1:
       raise ValueError(
-          'only one of micro_average, macro_average, or '
-          'weighted_macro_average should be set: micro_average={}, '
-          'macro_average={}, weighted_macro_average={}'.format(
-              micro_average, macro_average, weighted_macro_average))
+          f'only one of micro_average, macro_average, or weighted_macro_average should be set: micro_average={micro_average}, macro_average={macro_average}, weighted_macro_average={weighted_macro_average}'
+      )
     return super(AggregationType,
                  cls).__new__(cls, micro_average, macro_average,
                               weighted_macro_average)
@@ -933,9 +931,7 @@ def StandardMetricInputsPreprocessorList(  # pylint: disable=invalid-name
       raise ValueError(
           'Only direct instances of StandardMetricsInputPreprocessor '
           '(excluding sub-classes) are supported')
-    if not include_filter:
-      include_filter = p.include_filter
-    else:
-      include_filter = util.merge_filters(include_filter, p.include_filter)
+    include_filter = (util.merge_filters(include_filter, p.include_filter)
+                      if include_filter else p.include_filter)
   return StandardMetricInputsPreprocessor(
       include_filter=include_filter, include_default_inputs=False)

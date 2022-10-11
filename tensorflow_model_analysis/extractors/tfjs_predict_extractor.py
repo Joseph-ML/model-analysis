@@ -118,21 +118,21 @@ class _TFJSPredictionDoFn(model_util.BatchReducibleBatchedDoFnWithModels):
     for spec in self._eval_config.model_specs:
       model_name = spec.name if len(self._eval_config.model_specs) > 1 else ''
       if model_name not in self._loaded_models:
-        raise ValueError('model for "{}" not found: eval_config={}'.format(
-            spec.name, self._eval_config))
+        raise ValueError(
+            f'model for "{spec.name}" not found: eval_config={self._eval_config}'
+        )
 
       model_features = {}
       for k in self._model_properties[model_name]['inputs']:
         k_name = k.split(':')[0]
         if k_name not in batched_features:
-          raise ValueError('model requires feature "{}" not available in '
-                           'input.'.format(k_name))
+          raise ValueError(f'model requires feature "{k_name}" not available in input.')
         dim = self._model_properties[model_name]['inputs'][k]
         elems = []
         for i in batched_features[k_name]:
           if np.ndim(i) > len(dim):
-            raise ValueError('ranks for input "{}" are not compatible '
-                             'with the model.'.format(k_name))
+            raise ValueError(
+                f'ranks for input "{k_name}" are not compatible with the model.')
           # TODO(dzats): See if we can support case where multiple dimensions
           # are not defined.
           elems.append(np.reshape(i, dim))
@@ -174,8 +174,8 @@ class _TFJSPredictionDoFn(model_util.BatchReducibleBatchedDoFnWithModels):
       stdout, stderr = popen.communicate()
       if popen.returncode != 0:
         raise ValueError(
-            'Inference failed with status {}\nstdout:\n{}\nstderr:\n{}'.format(
-                popen.returncode, stdout, stderr))
+            f'Inference failed with status {popen.returncode}\nstdout:\n{stdout}\nstderr:\n{stderr}'
+        )
 
       try:
         with tf.io.gfile.GFile(os.path.join(cur_output_path, _DATA_JSON)) as f:
@@ -186,8 +186,8 @@ class _TFJSPredictionDoFn(model_util.BatchReducibleBatchedDoFnWithModels):
           shape = json.load(f)
       except FileNotFoundError as e:
         raise FileNotFoundError(
-            'Unable to find files containing inference result. This likely '
-            'means that inference did not succeed. Error {}'.format(e))
+            f'Unable to find files containing inference result. This likely means that inference did not succeed. Error {e}'
+        )
 
       name = [
           n.split(':')[0]

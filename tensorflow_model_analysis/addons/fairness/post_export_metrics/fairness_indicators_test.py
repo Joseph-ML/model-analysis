@@ -95,9 +95,9 @@ class FairnessIndicatorsTest(testutil.TensorflowModelAnalysisTest):
 
   def _runTest(self, examples, eval_export_dir, metrics, expected_values_dict):
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertDictElementsAlmostEqual(value, expected_values_dict)
@@ -181,9 +181,9 @@ class FairnessIndicatorsTest(testutil.TensorflowModelAnalysisTest):
     fairness_metrics = post_export_metrics.fairness_indicators(
         example_weight_key='fixed_float', thresholds=[0.5, 0.59, 0.599, 0.5999])
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertIn(metric_keys.base_key('true_positive_rate@0.5000'), value)
@@ -271,9 +271,9 @@ class FairnessIndicatorsTest(testutil.TensorflowModelAnalysisTest):
     fairness_metrics = post_export_metrics.fairness_indicators(
         example_weight_key='fixed_float', thresholds=[0.0, 0.7, 0.8, 1.0])
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         expected_values_dict = {
@@ -296,7 +296,7 @@ class FairnessIndicatorsTest(testutil.TensorflowModelAnalysisTest):
             metric_keys.base_key('true_positive_rate@0.80'): 3.0 / 7.0,
             metric_keys.base_key('false_positive_rate@0.80'): 0,
             metric_keys.base_key('positive_rate@0.80'): 0.3,
-            metric_keys.base_key('true_negative_rate@0.80'): 3.0 / 3.0,
+            metric_keys.base_key('true_negative_rate@0.80'): 1.0,
             metric_keys.base_key('false_negative_rate@0.80'): 4.0 / 7.0,
             metric_keys.base_key('negative_rate@0.80'): 7.0 / 10.0,
             metric_keys.base_key('false_discovery_rate@0.80'): 0,
@@ -330,9 +330,9 @@ class FairnessIndicatorsTest(testutil.TensorflowModelAnalysisTest):
     fairness_metrics = post_export_metrics.fairness_indicators(
         example_weight_key='fixed_float', thresholds=[0.0, 0.7, 0.8, 1.0])
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         expected_values_dict = {
@@ -355,7 +355,7 @@ class FairnessIndicatorsTest(testutil.TensorflowModelAnalysisTest):
             metric_keys.base_key('true_positive_rate@0.80'): 3.0 / 7.0,
             metric_keys.base_key('false_positive_rate@0.80'): 0,
             metric_keys.base_key('positive_rate@0.80'): 0.3,
-            metric_keys.base_key('true_negative_rate@0.80'): 3.0 / 3.0,
+            metric_keys.base_key('true_negative_rate@0.80'): 1.0,
             metric_keys.base_key('false_negative_rate@0.80'): 4.0 / 7.0,
             metric_keys.base_key('negative_rate@0.80'): 7.0 / 10.0,
             metric_keys.base_key('false_discovery_rate@0.80'): 0,
@@ -388,9 +388,9 @@ class FairnessIndicatorsTest(testutil.TensorflowModelAnalysisTest):
     examples = self.makeConfusionMatrixExamples()
     fairness_metrics = post_export_metrics.fairness_indicators()
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         expected_values_dict = {
@@ -415,7 +415,7 @@ class FairnessIndicatorsTest(testutil.TensorflowModelAnalysisTest):
             metric_keys.base_key('true_positive_rate@0.90'): 1.0 / 3.0,
             metric_keys.base_key('false_positive_rate@0.90'): 0.0 / 2.0,
             metric_keys.base_key('positive_rate@0.90'): 1.0 / 5.0,
-            metric_keys.base_key('true_negative_rate@0.90'): 2.0 / 2.0,
+            metric_keys.base_key('true_negative_rate@0.90'): 1.0,
             metric_keys.base_key('false_negative_rate@0.90'): 2.0 / 3.0,
             metric_keys.base_key('negative_rate@0.90'): 4.0 / 5.0,
             metric_keys.base_key('false_discovery_rate@0.10'): 1.0 / 3.0,
@@ -453,12 +453,12 @@ class FairnessIndicatorsTest(testutil.TensorflowModelAnalysisTest):
         fixed_prediction_estimator_extra_fields
         .simple_fixed_prediction_estimator_extra_fields(None,
                                                         temp_eval_export_dir))
-    examples = self.makeConfusionMatrixExamples()[0:1]
+    examples = self.makeConfusionMatrixExamples()[:1]
     fairness_metrics = post_export_metrics.fairness_indicators()
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         expected_values_dict = {
@@ -519,7 +519,7 @@ class FairnessIndicatorsTest(testutil.TensorflowModelAnalysisTest):
 
     def check_metric_result(got):
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         expected_values_dict = {
@@ -564,7 +564,7 @@ class FairnessIndicatorsTest(testutil.TensorflowModelAnalysisTest):
 
     def check_result(got):
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         expected_value = {
@@ -647,7 +647,7 @@ class FairnessIndicatorsTest(testutil.TensorflowModelAnalysisTest):
 
     def check_result(got):
       try:
-        self.assertEqual(3, len(got), 'got: %s' % got)
+        self.assertEqual(3, len(got), f'got: {got}')
         for _, value in got:
           expected_value = {
               # Subgroup
@@ -680,7 +680,7 @@ class FairnessIndicatorsTest(testutil.TensorflowModelAnalysisTest):
         output_metrics = metrics_for_slice_pb2.MetricsForSlice().metrics
         for slice_key, value in got:
           fairness_auc.populate_stats_and_pop(slice_key, value, output_metrics)
-        for key in (metric_keys.FAIRNESS_AUC + '/subgroup_auc/fixed_int', f'{metric_keys.FAIRNESS_AUC}/bpsn_auc/fixed_int', metric_keys.FAIRNESS_AUC + '/bnsp_auc/fixed_int'):
+        for key in (f'{metric_keys.FAIRNESS_AUC}/subgroup_auc/fixed_int', f'{metric_keys.FAIRNESS_AUC}/bpsn_auc/fixed_int', f'{metric_keys.FAIRNESS_AUC}/bnsp_auc/fixed_int'):
           self.assertProtoEquals(
               """
               bounded_value {
@@ -718,9 +718,9 @@ class FairnessIndicatorsTest(testutil.TensorflowModelAnalysisTest):
     fairness_metrics = post_export_metrics.fairness_indicators(
         example_weight_key='fixed_float', thresholds=[0.0, 0.7, 1.0])
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         expected_values_dict = {

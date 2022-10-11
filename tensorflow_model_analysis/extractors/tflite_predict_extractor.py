@@ -87,8 +87,9 @@ class _TFLitePredictionDoFn(model_util.BatchReducibleBatchedDoFnWithModels):
     for spec in self._eval_config.model_specs:
       model_name = spec.name if len(self._eval_config.model_specs) > 1 else ''
       if model_name not in self._loaded_models:
-        raise ValueError('model for "{}" not found: eval_config={}'.format(
-            spec.name, self._eval_config))
+        raise ValueError(
+            f'model for "{spec.name}" not found: eval_config={self._eval_config}'
+        )
 
       interpreter = self._interpreters[model_name]
 

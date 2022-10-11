@@ -110,8 +110,8 @@ def macro_average(
       example_weighted=example_weighted)
 
   def result(
-      metrics: Dict[metric_types.MetricKey, float]
-  ) -> Dict[metric_types.MetricKey, float]:
+        metrics: Dict[metric_types.MetricKey, float]
+    ) -> Dict[metric_types.MetricKey, float]:
     """Returns macro average."""
     total_value = 0.0
     total_weight = 0.0
@@ -131,7 +131,7 @@ def macro_average(
             sub_key=sub_key,
             example_weighted=example_weighted,
         )
-      weight = 1.0 if not class_weights else 0.0
+      weight = 0.0 if class_weights else 1.0
       offset = None
       if child_key.sub_key is not None:
         if child_key.sub_key.class_id is not None:
@@ -201,8 +201,8 @@ def weighted_macro_average(
   class_weights_from_labels_key = computations[0].keys[0]
 
   def result(
-      metrics: Dict[metric_types.MetricKey, Any]
-  ) -> Dict[metric_types.MetricKey, float]:
+        metrics: Dict[metric_types.MetricKey, Any]
+    ) -> Dict[metric_types.MetricKey, float]:
     """Returns weighted macro average."""
     class_weights_from_labels = metrics[class_weights_from_labels_key]
     total_value = 0.0
@@ -223,7 +223,7 @@ def weighted_macro_average(
             sub_key=sub_key,
             example_weighted=example_weighted,
         )
-      weight = 1.0 if not class_weights else 0.0
+      weight = 0.0 if class_weights else 1.0
       offset = None
       if child_key.sub_key is not None:
         if child_key.sub_key.class_id is not None:
@@ -252,9 +252,8 @@ def _to_float(value: Any) -> float:
     return float(value)
   except (ValueError, TypeError):
     raise ValueError(
-        '{} is not aggregatable: value={}\n\nThis is most likely caused by a '
-        'configuration error in which the aggregate option was applied '
-        'incorrectly.'.format(value.__class__.__name__, value))
+        f'{value.__class__.__name__} is not aggregatable: value={value}\n\nThis is most likely caused by a configuration error in which the aggregate option was applied incorrectly.'
+    )
 
 
 def _class_weights_from_labels(
@@ -324,9 +323,8 @@ class _ClassWeightsFromLabelsCombiner(beam.CombineFn):
             label_value = float(label.item() == class_id)
           elif class_id >= len(label):
             raise ValueError(
-                'class_id {} used with weighted_macro_average is outside the '
-                'range of the label provided: label={}, '
-                'StandardMetricInput={}'.format(class_id, label, element))
+                f'class_id {class_id} used with weighted_macro_average is outside the range of the label provided: label={label}, StandardMetricInput={element}'
+            )
           else:
             label_value = float(label[class_id])
           accumulator[class_id] += label_value * example_weight

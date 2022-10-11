@@ -62,7 +62,7 @@ class MetricTypesTest(tf.test.TestCase):
     ]
     for key in metric_keys:
       got_key = metric_types.MetricKey.from_proto(key.to_proto())
-      self.assertEqual(key, got_key, '{} != {}'.format(key, got_key))
+      self.assertEqual(key, got_key, f'{key} != {got_key}')
 
   def testPlotKeyFromProto(self):
     plot_keys = [
@@ -80,7 +80,7 @@ class MetricTypesTest(tf.test.TestCase):
     ]
     for key in plot_keys:
       got_key = metric_types.PlotKey.from_proto(key.to_proto())
-      self.assertEqual(key, got_key, '{} != {}'.format(key, got_key))
+      self.assertEqual(key, got_key, f'{key} != {got_key}')
 
   def testSubKeyStr(self):
     self.assertEqual(str(metric_types.SubKey(class_id=1)), 'classId:1')

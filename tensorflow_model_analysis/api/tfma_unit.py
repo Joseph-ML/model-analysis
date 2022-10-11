@@ -139,7 +139,7 @@ class TestCase(testutil.TensorflowModelAnalysisTest):
                     '(both ends inclusive), but value was %f instead' %
                     (key, value.lower_bound, value.upper_bound, got_value))
       else:
-        self.assertAllClose(got_value, value, msg='key = %s' % key)
+        self.assertAllClose(got_value, value, msg=f'key = {key}')
 
   def assertMetricsComputedWithoutBeamAre(self, eval_saved_model_path: str,
                                           serialized_examples: List[bytes],

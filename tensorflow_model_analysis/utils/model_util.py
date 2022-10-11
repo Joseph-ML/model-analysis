@@ -206,8 +206,9 @@ def verify_and_update_eval_shared_models(
   if isinstance(eval_shared_model, dict):
     for k, v in eval_shared_model.items():
       if v.model_name and k and k != v.model_name:
-        raise ValueError('keys for EvalSharedModel dict do not match '
-                         'model_names: dict={}'.format(eval_shared_model))
+        raise ValueError(
+            f'keys for EvalSharedModel dict do not match model_names: dict={eval_shared_model}'
+        )
       if not v.model_name and k:
         v = v._replace(model_name=k)
       eval_shared_models.append(v)
@@ -219,10 +220,8 @@ def verify_and_update_eval_shared_models(
     for v in eval_shared_models:
       if not v.model_name:
         raise ValueError(
-            'model_name is required when passing multiple EvalSharedModels: '
-            'eval_shared_models={}'.format(eval_shared_models))
-  # To maintain consistency between settings where single models are used,
-  # always use '' as the model name regardless of whether a name is passed.
+            f'model_name is required when passing multiple EvalSharedModels: eval_shared_models={eval_shared_models}'
+        )
   elif len(eval_shared_models) == 1 and eval_shared_models[0].model_name:
     eval_shared_models[0] = eval_shared_models[0]._replace(model_name='')
   return eval_shared_models
@@ -318,7 +317,7 @@ def get_feature_values_for_model_spec_field(
     else:
       values = None
     batched_values.append(values)
-  return batched_values if not all_none else None
+  return None if all_none else batched_values
 
 
 def get_default_signature_name(model: Any) -> str:
@@ -400,8 +399,9 @@ def get_callable(model: Any,
       if is_callable_fn(fn):
         return fn
     if required:
-      raise ValueError('{} not found in model signatures: {}'.format(
-          signature_name, model.signatures))
+      raise ValueError(
+          f'{signature_name} not found in model signatures: {model.signatures}'
+      )
     return None
 
   return model.signatures[signature_name]
@@ -489,9 +489,8 @@ def input_specs_to_tensor_representations(
       for dim in type_spec.shape[1:] if len(type_spec.shape) > 1 else []:
         if dim is None:
           raise ValueError(
-              'input {} contains unknown dimensions which are not supported: '
-              'type_spec={}, input_specs={}'.format(name, type_spec,
-                                                    input_specs))
+              f'input {name} contains unknown dimensions which are not supported: type_spec={type_spec}, input_specs={input_specs}'
+          )
         tensor_representation.dense_tensor.shape.dim.append(
             schema_pb2.FixedShape.Dim(size=dim))
     tensor_representations[name] = tensor_representation
@@ -540,8 +539,8 @@ def filter_by_input_names(d: Dict[str, Any],
       # examples as input. Else raise an exception.
       if len(input_names) == 1:
         return None
-      raise RuntimeError('Input not found: {}. Existing keys: {}.'.format(
-          name, ','.join(d.keys())))
+      raise RuntimeError(
+          f"Input not found: {name}. Existing keys: {','.join(d.keys())}.")
     result[name] = d[input_name]
   return result
 
@@ -857,8 +856,8 @@ class ModelSignaturesDoFn(BatchReducibleBatchedDoFnWithModels):
       model_name = spec.name if len(self._eval_config.model_specs) > 1 else ''
       if model_name not in self._loaded_models:
         raise ValueError(
-            'loaded model for "{}" not found: eval_config={}'.format(
-                spec.name, self._eval_config))
+            f'loaded model for "{spec.name}" not found: eval_config={self._eval_config}'
+        )
       loaded_models[model_name] = self._loaded_models[model_name]
     self._loaded_models = loaded_models
 
@@ -905,10 +904,7 @@ class ModelSignaturesDoFn(BatchReducibleBatchedDoFnWithModels):
               signature_name, input_names = get_preprocessing_signature(
                   signature_name)
               signature = getattr(preprocessing_functions, signature_name)
-              input_specs = {
-                  input_name: type_spec for input_name, type_spec in zip(
-                      input_names, signature.input_signature)
-              }
+              input_specs = dict(zip(input_names, signature.input_signature))
               inputs = get_inputs(record_batch, input_specs)
               positional_inputs = True
             except AttributeError as e:
@@ -937,8 +933,9 @@ class ModelSignaturesDoFn(BatchReducibleBatchedDoFnWithModels):
           if signature is None:
             if not required:
               continue
-            raise ValueError('Unable to find %s function needed to update %s' %
-                             (signature_name, extracts_key))
+            raise ValueError(
+                f'Unable to find {signature_name} function needed to update {extracts_key}'
+            )
           try:
             if isinstance(inputs, dict):
               if hasattr(signature, 'structured_input_signature'):
@@ -1031,7 +1028,7 @@ def has_rubber_stamp(eval_shared_model: Optional[List[types.EvalSharedModel]]):
     if (len(eval_shared_model) == 1 and eval_shared_model[0].is_baseline):
       raise ValueError('Only a baseline model is provided. '
                        'A candidate model is required for evaluation.')
-    return all(m.rubber_stamp if not m.is_baseline else True
-               for m in eval_shared_model)
-  raise ValueError('Not supported eval_shared_model type: {}'.format(
-      type(eval_shared_model)))
+    return all(
+        True if m.is_baseline else m.rubber_stamp for m in eval_shared_model)
+  raise ValueError(
+      f'Not supported eval_shared_model type: {type(eval_shared_model)}')

@@ -37,13 +37,11 @@ class SliceAccessor:
     self._default_features_dict = default_features_dict
 
   def has_key(self, key: str):
-    for d in self._features_dicts:
-      if key in d and d[key] is not None:
-        return True
-    if (self._default_features_dict and key in self._default_features_dict and
-        self._default_features_dict[key] is not None):
-      return True
-    return False
+    return next(
+        (True for d in self._features_dicts if key in d and d[key] is not None),
+        bool((self._default_features_dict and key in self._default_features_dict
+              and self._default_features_dict[key] is not None)),
+    )
 
   def get(self, key: str) -> List[Union[int, bytes, float]]:
     """Get the values of the feature with the given key.
@@ -73,8 +71,8 @@ class SliceAccessor:
         value = value.values
       if not isinstance(value, (np.ndarray, pa.Array, list)):
         raise ValueError(
-            'feature had unsupported type: key: %s, value: %s, type: %s' %
-            (key, value, type(value)))
+            f'feature had unsupported type: key: {key}, value: {value}, type: {type(value)}'
+        )
       # Only np.array and multi-dimentional pa.array support flatten.
       if hasattr(value, 'flatten'):
         value = value.flatten()
@@ -85,12 +83,9 @@ class SliceAccessor:
       value = normalize_value(d.get(key))
       if value is None:
         continue
-      if values is None:
-        values = value
-      else:
-        values = np.concatenate((values, value))
+      values = value if values is None else np.concatenate((values, value))
     if values is None and self._default_features_dict:
       values = normalize_value(self._default_features_dict.get(key))
     if values is None:
-      raise KeyError('key %s not found' % key)
+      raise KeyError(f'key {key} not found')
     return np.unique(values).tolist()

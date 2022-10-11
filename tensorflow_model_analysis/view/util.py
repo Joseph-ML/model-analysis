@@ -67,13 +67,12 @@ def get_slicing_metrics(
   slice_count = len(data)
   if not slice_count:
     if slicing_spec:
-      raise ValueError('No slices found for %s' % slicing_spec)
+      raise ValueError(f'No slices found for {slicing_spec}')
     if not slicing_column:
       slicing_column = slicer.OVERALL_SLICE_NAME
-    raise ValueError('No slices found for %s' % slicing_column)
+    raise ValueError(f'No slices found for {slicing_column}')
   elif not slicing_column and not slicing_spec and slice_count > 1:
-    raise ValueError('More than one slice found for %s' %
-                     slicer.OVERALL_SLICE_NAME)
+    raise ValueError(f'More than one slice found for {slicer.OVERALL_SLICE_NAME}')
   else:
     return data
 
@@ -265,13 +264,13 @@ def get_plot_data_and_config(
 
   if class_id is not None:
     sub_key_oneof_check += 1
-    sub_key_id = 'classId:' + str(class_id)
+    sub_key_id = f'classId:{str(class_id)}'
   if top_k is not None:
     sub_key_oneof_check += 1
-    sub_key_id = 'topK:' + str(top_k)
+    sub_key_id = f'topK:{str(top_k)}'
   if k is not None:
     sub_key_oneof_check += 1
-    sub_key_id = 'k:' + str(k)
+    sub_key_id = f'k:{str(k)}'
   if sub_key_oneof_check > 1:
     raise ValueError('Up to one of class_id, top_k and k can be provided.')
 
@@ -294,7 +293,7 @@ def get_plot_data_and_config(
 
   if output_name not in target_slice['metrics']:
     if output_name:
-      raise ValueError('No plot data found for output name %s.' % output_name)
+      raise ValueError(f'No plot data found for output name {output_name}.')
     else:
       raise ValueError('No plot data found without output name.')
 
@@ -304,8 +303,8 @@ def get_plot_data_and_config(
   if class_id_to_use not in output:
     if class_id is None:
       raise ValueError(
-          'No plot data found for output name %s with no class id.' %
-          output_name)
+          f'No plot data found for output name {output_name} with no class id.'
+      )
     else:
       raise ValueError(
           'No plot data found for output name %s with class id %d.' %
@@ -319,17 +318,17 @@ def get_plot_data_and_config(
     plot_set = None
     for key in plot_data:
       if label in key:
-        if not plot_set:
-          plot_set = plot_data[key]
-        else:
+        if plot_set:
           raise ValueError(
-              'Label %s matches more than one key. Keys are %s. Please make it more specific.'
-              % (label, ', '.join([key for key, _ in plot_data])))
+              f"Label {label} matches more than one key. Keys are {', '.join([key for key, _ in plot_data])}. Please make it more specific."
+          )
 
+        else:
+          plot_set = plot_data[key]
     if not plot_set:
       raise ValueError(
-          'Label %s does not match any key. Keys are %s. Please provide a new one.'
-          % (label, ', '.join([key for key, _ in plot_data])))
+          f"Label {label} does not match any key. Keys are {', '.join([key for key, _ in plot_data])}. Please provide a new one."
+      )
     plot_data = plot_set
   else:
     # Make sure that we are not looking at actual plot data instead of a map of
@@ -341,8 +340,9 @@ def get_plot_data_and_config(
             'metricName'] == key
 
     if not contains_supported_plot_data:
-      raise ValueError('No plot data found. Maybe provide a label? %s' %
-                       json.dumps(plot_data))
+      raise ValueError(
+          f'No plot data found. Maybe provide a label? {json.dumps(plot_data)}'
+      )
 
   plot_data = _replace_nan_with_none(plot_data, _SUPPORTED_PLOT_KEYS)
 
@@ -532,9 +532,9 @@ def convert_metrics_proto_to_dict(
         elif default_model_name != current_model_name:
           # Setting '' to trigger no match found ValueError below.
           default_model_name = ''
-        metric_name = '{}_diff'.format(kv.key.name)
+        metric_name = f'{kv.key.name}_diff'
       elif kv.key.HasField('aggregation_type'):
-        metric_name = '{}_{}'.format(kv.key.aggregation_type, kv.key.name)
+        metric_name = f'{kv.key.aggregation_type}_{kv.key.name}'
       else:
         metric_name = kv.key.name
       sub_key_metrics_map[sub_key_id][metric_name] = json_format.MessageToDict(
@@ -629,8 +629,8 @@ def convert_attributions_proto_to_dict(
     model_name: Optional[str] = None
 ) -> Tuple[slicer.SliceKeyType, Optional[view_types.AttributionsByOutputName]]:
   """Converts attributions proto to dict."""
-  model_metrics_map = {}
   default_model_name = None
+  model_metrics_map = {}
   if attributions_for_slice.attributions_keys_and_values:
     for kv in attributions_for_slice.attributions_keys_and_values:
       current_model_name = kv.key.model_name
@@ -652,7 +652,7 @@ def convert_attributions_proto_to_dict(
         elif default_model_name != current_model_name:
           # Setting '' to possibly trigger no match found ValueError below.
           default_model_name = ''
-        metric_name = '{}_diff'.format(kv.key.name)
+        metric_name = f'{kv.key.name}_diff'
       else:
         metric_name = kv.key.name
       attributions = {k: json_format.MessageToDict(kv.values[k]) for k in kv.values}
@@ -669,9 +669,9 @@ def convert_attributions_proto_to_dict(
     metrics_map = model_metrics_map[keys[0]]
   elif keys:
     # No match found.
-    raise ValueError('Fail to find attribution metrics for model name: %s . '
-                     'Available model names are [%s]' %
-                     (model_name, ', '.join(keys)))
+    raise ValueError(
+        f"Fail to find attribution metrics for model name: {model_name} . Available model names are [{', '.join(keys)}]"
+    )
 
   return (slicer.deserialize_slice_key(attributions_for_slice.slice_key),
           metrics_map)

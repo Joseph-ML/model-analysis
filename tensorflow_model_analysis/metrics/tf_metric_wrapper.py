@@ -80,9 +80,8 @@ def tf_metric_computations(
   if aggregation_type is not None:
     if sparse_metrics := _sparse_metrics(metrics):
       raise ValueError(
-          'sparse metrics cannot be used with aggregation options. Either '
-          'disable aggregation settings or replace the sparse metrics with'
-          'non-sparse versions: {}'.format(sparse_metrics))
+          f'sparse metrics cannot be used with aggregation options. Either disable aggregation settings or replace the sparse metrics withnon-sparse versions: {sparse_metrics}'
+      )
 
   metrics = _filter_duplicate_metrics(metrics, model_name, sub_key)
 
@@ -214,16 +213,14 @@ def _verify_and_update_sub_key(model_name: str, output_name: str,
   if hasattr(metric, _CLASS_ID_KEY) and metric.class_id is not None:
     if sub_key and sub_key.class_id != metric.class_id:
       raise ValueError(
-          '{} tf.keras.metric has class_id = {}, but the metric is being added '
-          'using sub_key = {}: model_name={}, output_name={}'.format(
-              metric.name, metric.class_id, sub_key, model_name, output_name))
+          f'{metric.name} tf.keras.metric has class_id = {metric.class_id}, but the metric is being added using sub_key = {sub_key}: model_name={model_name}, output_name={output_name}'
+      )
     return metric_types.SubKey(class_id=metric.class_id)
   elif hasattr(metric, _TOP_K_KEY) and metric.top_k is not None:
     if sub_key and sub_key.top_k != metric.top_k:
       raise ValueError(
-          '{} tf.keras.metric has top_k = {}, but the metric is being added '
-          'using sub_key = {}: model_name={}, output_name={}'.format(
-              metric.name, metric.top_k, sub_key, model_name, output_name))
+          f'{metric.name} tf.keras.metric has top_k = {metric.top_k}, but the metric is being added using sub_key = {sub_key}: model_name={model_name}, output_name={output_name}'
+      )
     return metric_types.SubKey(top_k=metric.top_k)
   else:
     return sub_key
@@ -330,7 +327,7 @@ def _wrap_confusion_matrix_metric(
             'the label_weights settings in the AUC class or remove the '
             'class_weights from the AggregationOptions: metric={}, '
             'class_weights={}'.format(metric, class_weights))
-      class_weights = {i: v for i, v in enumerate(metric.label_weights)}
+      class_weights = dict(enumerate(metric.label_weights))
     if metric.multi_label:
       raise NotImplementedError('AUC.multi_label=True is not implemented yet.')
 
@@ -376,15 +373,20 @@ def _wrap_confusion_matrix_metric(
   matrices_key = computations[-1].keys[-1]
 
   def result(
-      metrics: Dict[metric_types.MetricKey, Any]
-  ) -> Dict[metric_types.MetricKey, Any]:
+        metrics: Dict[metric_types.MetricKey, Any]
+    ) -> Dict[metric_types.MetricKey, Any]:
     """Returns result derived from binary confusion matrices."""
     matrices = metrics[matrices_key]
 
     metric = tf.keras.metrics.deserialize(metric_config)
-    if (isinstance(metric, tf.keras.metrics.AUC) or
-        isinstance(metric, tf.keras.metrics.SpecificityAtSensitivity) or
-        isinstance(metric, tf.keras.metrics.SensitivityAtSpecificity)):
+    if isinstance(
+        metric,
+        (
+            tf.keras.metrics.AUC,
+            tf.keras.metrics.SpecificityAtSensitivity,
+            tf.keras.metrics.SensitivityAtSpecificity,
+        ),
+    ):
       metric.true_positives.assign(np.array(matrices.tp))
       metric.true_negatives.assign(np.array(matrices.tn))
       metric.false_positives.assign(np.array(matrices.fp))
@@ -522,18 +524,7 @@ class _CompilableMetricsCombiner(beam.CombineFn):
       # that each class is treated as though it was an independent example.
       micro_average = (
           self._aggregation_type and self._aggregation_type.micro_average)
-      for label, prediction, example_weight in (
-          metric_util.to_label_prediction_example_weight(
-              element,
-              eval_config=self._eval_config,
-              model_name=self._model_name,
-              output_name=output_name,
-              # Skip sub_key processing if part of the keras config
-              sub_key=self._sub_key if not self._sub_key_in_config else None,
-              aggregation_type=self._aggregation_type,
-              class_weights=self._class_weights,
-              example_weighted=self._example_weighted,
-              flatten=micro_average)):
+      for label, prediction, example_weight in metric_util.to_label_prediction_example_weight(element, eval_config=self._eval_config, model_name=self._model_name, output_name=output_name, sub_key=None if self._sub_key_in_config else self._sub_key, aggregation_type=self._aggregation_type, class_weights=self._class_weights, example_weighted=self._example_weighted, flatten=micro_average):
         # Keras requires non-sparse keys for its calcuations.
         if self._sub_key_in_config and label.shape != prediction.shape:
           label = metric_util.one_hot(label, prediction)

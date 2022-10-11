@@ -111,10 +111,10 @@ class ModelAgnosticConfig(
       raise ValueError('ModelAgnosticConfig must have feature_spec set.')
     for key in prediction_keys:
       if key not in feature_spec:
-        raise ValueError('Prediction key %s not defined in feature_spec.' % key)
+        raise ValueError(f'Prediction key {key} not defined in feature_spec.')
     for key in label_keys:
       if key not in feature_spec:
-        raise ValueError('Label key %s not defined in feature_spec.' % key)
+        raise ValueError(f'Label key {key} not defined in feature_spec.')
 
     return super(ModelAgnosticConfig, cls).__new__(
         cls,

@@ -47,8 +47,7 @@ def _get_feature_value(fpl: query_types.FPL, key: str) -> float:
   """
   feature = fpl['features'].get(key)
   if feature is None:
-    raise ValueError('feature %s not found in features %s' %
-                     (key, fpl['features']))
+    raise ValueError(f"feature {key} not found in features {fpl['features']}")
   if feature.size != 1:
     raise ValueError('feature %s did not contain exactly 1 value. '
                      'value was: %s' % (key, feature))

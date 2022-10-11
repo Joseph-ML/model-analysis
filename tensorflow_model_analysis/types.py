@@ -158,11 +158,8 @@ class StructuredMetricValue(abc.ABC):
       return self._apply_binary_op_broadcast(float(other), op)
     else:
       raise ValueError(
-          'Binary ops can only be applied elementwise on two instances of the '
-          'same StructuredMetricValue subclass or using broadcasting with one '
-          'StructuredMetricValue and a primitive numeric type (int, float, '
-          'np.number). Cannot apply binary op on objects of type '
-          '{} and {}'.format(type(self), type(other)))
+          f'Binary ops can only be applied elementwise on two instances of the same StructuredMetricValue subclass or using broadcasting with one StructuredMetricValue and a primitive numeric type (int, float, np.number). Cannot apply binary op on objects of type {type(self)} and {type(other)}'
+      )
 
   def __add__(self: ConcreteStructuredMetricValue,
               other: Union[ConcreteStructuredMetricValue, float]):

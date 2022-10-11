@@ -61,7 +61,7 @@ def stringify_slice_key_value(slice_key: slicer.SliceKeyType) -> str:
   # We use u'{}' instead of '{}' here to avoid encoding a unicode character with
   # ascii codec.
   values = [
-      u'{}'.format(tf.compat.as_text(tf.compat.as_str_any(value)))
+      f'{tf.compat.as_text(tf.compat.as_str_any(value))}'
       for _, value in slice_key
   ]
   return '_X_'.join(values)
@@ -78,12 +78,10 @@ def _add_cross_slice_key_data(slice_key: slicer.CrossSliceKeyType,
     metrics: Metrics data for the cross slice key.
     data: List where UI data is to be appended.
   """
-  baseline_key = slice_key[0]
   comparison_key = slice_key[1]
-  stringify_slice_value = stringify_slice_key_value(
-      baseline_key) + '__XX__' + stringify_slice_key_value(comparison_key)
-  stringify_slice = slicer.stringify_slice_key(
-      baseline_key) + '__XX__' + slicer.stringify_slice_key(comparison_key)
+  baseline_key = slice_key[0]
+  stringify_slice_value = f'{stringify_slice_key_value(baseline_key)}__XX__{stringify_slice_key_value(comparison_key)}'
+  stringify_slice = f'{slicer.stringify_slice_key(baseline_key)}__XX__{slicer.stringify_slice_key(comparison_key)}'
   data.append({
       'sliceValue': stringify_slice_value,
       'slice': stringify_slice,

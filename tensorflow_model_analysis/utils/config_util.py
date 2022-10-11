@@ -25,42 +25,43 @@ def verify_eval_config(eval_config: config_pb2.EvalConfig,
   """Verifies eval config."""
   if not eval_config.model_specs:
     raise ValueError(
-        'At least one model_spec is required: eval_config=\n{}'.format(
-            eval_config))
+        f'At least one model_spec is required: eval_config=\n{eval_config}')
 
   model_specs_by_name = {}
   baseline = None
   for spec in eval_config.model_specs:
     if spec.label_key and spec.label_keys:
-      raise ValueError('only one of label_key or label_keys should be used at '
-                       'a time: model_spec=\n{}'.format(spec))
+      raise ValueError(
+          f'only one of label_key or label_keys should be used at a time: model_spec=\n{spec}'
+      )
     if spec.prediction_key and spec.prediction_keys:
       raise ValueError(
-          'only one of prediction_key or prediction_keys should be used at '
-          'a time: model_spec=\n{}'.format(spec))
+          f'only one of prediction_key or prediction_keys should be used at a time: model_spec=\n{spec}'
+      )
     if spec.example_weight_key and spec.example_weight_keys:
       raise ValueError(
-          'only one of example_weight_key or example_weight_keys should be '
-          'used at a time: model_spec=\n{}'.format(spec))
+          f'only one of example_weight_key or example_weight_keys should be used at a time: model_spec=\n{spec}'
+      )
     if spec.name in eval_config.model_specs:
       raise ValueError(
-          'more than one model_spec found for model "{}": {}'.format(
-              spec.name, [spec, model_specs_by_name[spec.name]]))
+          f'more than one model_spec found for model "{spec.name}": {[spec, model_specs_by_name[spec.name]]}'
+      )
     model_specs_by_name[spec.name] = spec
     if spec.is_baseline:
       if baseline is not None:
-        raise ValueError('only one model_spec may be a baseline, found: '
-                         '{} and {}'.format(spec, baseline))
+        raise ValueError(
+            f'only one model_spec may be a baseline, found: {spec} and {baseline}'
+        )
       baseline = spec
 
   if len(model_specs_by_name) > 1 and '' in model_specs_by_name:
-    raise ValueError('A name is required for all ModelSpecs when multiple '
-                     'models are used: eval_config=\n{}'.format(eval_config))
+    raise ValueError(
+        f'A name is required for all ModelSpecs when multiple models are used: eval_config=\n{eval_config}'
+    )
 
   if baseline_required and not baseline:
     raise ValueError(
-        'A baseline ModelSpec is required: eval_config=\n{}'.format(
-            eval_config))
+        f'A baseline ModelSpec is required: eval_config=\n{eval_config}')
 
 
 def update_eval_config_with_defaults(

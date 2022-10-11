@@ -41,10 +41,10 @@ def Validate(  # pylint: disable=invalid-name
     Validation dict.
   """
   evaluations = {
-      key: extracts | 'Evaluate(%s)' % key >> alternatives[key]
+      key: extracts | f'Evaluate({key})' >> alternatives[key]
       for key in alternatives
   }
   validation = {}
   for v in validators:
-    validation.update(evaluations | v.stage_name >> v.ptransform)
+    validation |= evaluations | v.stage_name >> v.ptransform
   return validation

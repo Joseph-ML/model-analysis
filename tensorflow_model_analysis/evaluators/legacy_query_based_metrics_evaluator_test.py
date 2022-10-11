@@ -141,7 +141,7 @@ class QueryBasedMetricsEvaluatorTest(testutil.TensorflowModelAnalysisTest):
 
       def check_metrics(got):
         try:
-          self.assertEqual(1, len(got), 'got: %s' % got)
+          self.assertEqual(1, len(got), f'got: {got}')
           got_slice_key, got_metrics = got[0]
           self.assertEqual(got_slice_key, ())
           self.assertDictElementsAlmostEqual(

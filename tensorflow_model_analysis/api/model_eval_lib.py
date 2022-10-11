@@ -366,8 +366,9 @@ def default_eval_shared_model(
   else:
     model_spec = model_util.get_model_spec(eval_config, model_name)
     if not model_spec:
-      raise ValueError('ModelSpec for model name {} not found in EvalConfig: '
-                       'config={}'.format(model_name, eval_config))
+      raise ValueError(
+          f'ModelSpec for model name {model_name} not found in EvalConfig: config={eval_config}'
+      )
     is_baseline = model_spec.is_baseline
     model_type = model_util.get_model_type(model_spec, eval_saved_model_path,
                                            tags)
@@ -497,10 +498,9 @@ def default_extractors(  # pylint: disable=invalid-name
     if (not model_types.issubset(constants.VALID_TF_MODEL_TYPES) and
         not custom_predict_extractor):
       raise NotImplementedError(
-          'either a custom_predict_extractor must be used or model type must '
-          'be one of: {}. evalconfig={}'.format(
-              str(constants.VALID_TF_MODEL_TYPES), eval_config))
-    if model_types == set([constants.TF_LITE]):
+          f'either a custom_predict_extractor must be used or model type must be one of: {str(constants.VALID_TF_MODEL_TYPES)}. evalconfig={eval_config}'
+      )
+    if model_types == {constants.TF_LITE}:
       # TODO(b/163889779): Convert TFLite extractor to operate on batched
       # extracts. Then we can remove the input extractor.
       return [
@@ -521,10 +521,10 @@ def default_extractors(  # pylint: disable=invalid-name
       ]
     elif constants.TF_LITE in model_types:
       raise NotImplementedError(
-          'support for mixing tf_lite and non-tf_lite models is not '
-          'implemented: eval_config={}'.format(eval_config))
+          f'support for mixing tf_lite and non-tf_lite models is not implemented: eval_config={eval_config}'
+      )
 
-    if model_types == set([constants.TF_JS]):
+    if model_types == {constants.TF_JS}:
       return [
           features_extractor.FeaturesExtractor(eval_config=eval_config),
           labels_extractor.LabelsExtractor(eval_config=eval_config),
@@ -539,12 +539,12 @@ def default_extractors(  # pylint: disable=invalid-name
       ]
     elif constants.TF_JS in model_types:
       raise NotImplementedError(
-          'support for mixing tf_js and non-tf_js models is not '
-          'implemented: eval_config={}'.format(eval_config))
+          f'support for mixing tf_js and non-tf_js models is not implemented: eval_config={eval_config}'
+      )
 
-    elif (eval_config and model_types == set([constants.TF_ESTIMATOR]) and
-          all(eval_constants.EVAL_TAG in m.model_loader.tags
-              for m in eval_shared_models)):
+    elif (eval_config and model_types == {constants.TF_ESTIMATOR}
+          and all(eval_constants.EVAL_TAG in m.model_loader.tags
+                  for m in eval_shared_models)):
       return [
           custom_predict_extractor or legacy_predict_extractor.PredictExtractor(
               eval_shared_model,
@@ -558,8 +558,8 @@ def default_extractors(  # pylint: disable=invalid-name
           any(eval_constants.EVAL_TAG in m.model_loader.tags
               for m in eval_shared_models)):
       raise NotImplementedError(
-          'support for mixing eval and non-eval estimator models is not '
-          'implemented: eval_config={}'.format(eval_config))
+          f'support for mixing eval and non-eval estimator models is not implemented: eval_config={eval_config}'
+      )
     else:
       extractors = [
           features_extractor.FeaturesExtractor(eval_config=eval_config)
@@ -637,10 +637,9 @@ def default_evaluators(  # pylint: disable=invalid-name
     eval_config = _update_eval_config_with_defaults(eval_config,
                                                     eval_shared_model)
     disabled_outputs = eval_config.options.disabled_outputs.values
-    if (_model_types(eval_shared_model) in [
-        set([constants.TF_LITE]),
-        set([constants.TF_JS])
-    ] and eval_shared_model):
+    if (_model_types(eval_shared_model) in [{constants.TF_LITE},
+                                            {constants.TF_JS}]
+        and eval_shared_model):
       if isinstance(eval_shared_model, dict):
         eval_shared_model = {
             k: v._replace(include_default_metrics=False)
@@ -850,10 +849,8 @@ def ExtractAndEvaluate(  # pylint: disable=invalid-name
     # Note that we assume that if a key is multivalued, its values are
     # dictionaries with disjoint keys. The combined value will simply be the
     # disjoint union of all the dictionaries.
-    result[k] = (
-        v
-        | 'FlattenEvaluationOutput(%s)' % k >> beam.Flatten()
-        | 'CombineEvaluationOutput(%s)' % k >> beam.CombinePerKey(
+    result[k] = (v | f'FlattenEvaluationOutput({k})' >> beam.Flatten()) | (
+        f'CombineEvaluationOutput({k})' >> beam.CombinePerKey(
             _CombineEvaluationDictionariesFn()))
 
   return result
@@ -872,7 +869,7 @@ class _CombineEvaluationDictionariesFn(beam.CombineFn):
           'Dictionaries generated by different evaluators should have '
           'different keys, but keys %s appeared in the output of multiple '
           'evaluators' % intersection)
-    accumulator.update(output_dict)
+    accumulator |= output_dict
 
   def add_input(self, accumulator: Dict[str, Any],
                 output_dict: Dict[str, Any]) -> Dict[str, Any]:
@@ -937,9 +934,9 @@ def is_legacy_estimator(
   model_types = _model_types(eval_shared_model)
   eval_shared_models = model_util.verify_and_update_eval_shared_models(
       eval_shared_model)
-  return (model_types == set([constants.TF_ESTIMATOR]) and
-          all(eval_constants.EVAL_TAG in m.model_loader.tags
-              for m in eval_shared_models))
+  return model_types == {constants.TF_ESTIMATOR} and all(
+      eval_constants.EVAL_TAG in m.model_loader.tags
+      for m in eval_shared_models)
 
 
 def is_batched_input(eval_shared_model: Optional[
@@ -1249,7 +1246,7 @@ def run_model_analysis(
             file_pattern=data_location,
             compression_type=beam.io.filesystem.CompressionTypes.AUTO)
     else:
-      raise ValueError('unknown file_format: {}'.format(file_format))
+      raise ValueError(f'unknown file_format: {file_format}')
 
     # pylint: disable=no-value-for-parameter
     _ = (
@@ -1267,7 +1264,7 @@ def run_model_analysis(
             tensor_adapter_config=tensor_adapter_config,
             schema=schema,
             config_version=config_version))
-      # pylint: enable=no-value-for-parameter
+        # pylint: enable=no-value-for-parameter
 
   if len(eval_config.model_specs) <= 1:
     return load_eval_result(output_path)
@@ -1448,17 +1445,17 @@ def analyze_raw_data(
     KeyError: If the prediction or label columns are not found within the
       DataFrame.
   """
-  for model_spec in eval_config.model_specs:  # pytype: disable=attribute-error
+  for model_spec in eval_config.model_specs:# pytype: disable=attribute-error
     model_spec.prediction_key = model_spec.prediction_key or 'prediction'
     model_spec.label_key = model_spec.label_key or 'label'
     if model_spec.prediction_key not in data.columns:
       raise KeyError(
-          'The prediction_key column was not found. Looked for %s but found: %s'
-          % (model_spec.prediction_key, list(data.columns)))
+          f'The prediction_key column was not found. Looked for {model_spec.prediction_key} but found: {list(data.columns)}'
+      )
     if model_spec.label_key not in data.columns:
       raise KeyError(
-          'The label_key column was not found. Looked for %s but found: %s' %
-          (model_spec.label_key, list(data.columns)))
+          f'The label_key column was not found. Looked for {model_spec.label_key} but found: {list(data.columns)}'
+      )
 
   # TODO(b/153570803): Validity check / assertions for dataframe structure
   if eval_config.slicing_specs is None:  # pytype: disable=attribute-error

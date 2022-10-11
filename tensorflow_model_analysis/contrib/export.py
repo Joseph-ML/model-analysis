@@ -63,7 +63,7 @@ def _make_observing_layer_call(old_call_fn: Callable[..., Any], key_prefix: str,
         self,
         features=features,
         cols_to_output_tensors=local_cols_to_output_tensors)
-    output_dict[key_prefix + '_features'] = dict(features)
+    output_dict[f'{key_prefix}_features'] = dict(features)
     output_dict[f'{key_prefix}_cols_to_output_tensors'] = dict(
         local_cols_to_output_tensors)
     return result
@@ -225,8 +225,9 @@ def _serialize_feature_column(
             _serialize_feature_column(feature_column.categorical_column)
     }
   else:
-    raise ValueError('unknown feature column, type %s, value %s' %
-                     (type(feature_column), str(feature_column)))
+    raise ValueError(
+        f'unknown feature column, type {type(feature_column)}, value {str(feature_column)}'
+    )
 
 
 def _serialize_feature_metadata_for_model(
@@ -300,8 +301,8 @@ def export_eval_savedmodel_with_feature_metadata(
   # doesn't seem to be a nice way to do this given how we are monkey-patching
   # to observe/capture the information we need.
   if not export_path:
-    raise ValueError('export appears to have failed. export_path was: %s' %
-                     export_path)
+    raise ValueError(
+        f'export appears to have failed. export_path was: {export_path}')
 
   export_path = six.ensure_str(export_path)
   output_path = feature_metadata_path(export_path)
