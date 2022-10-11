@@ -39,9 +39,14 @@ VALUES_SUFFIX = 'values'
 
 def is_sparse_or_ragged_tensor_value(tensor: Any) -> bool:
   """Returns true if sparse or ragged tensor."""
-  return (isinstance(tensor, types.SparseTensorValue) or
-          isinstance(tensor, types.RaggedTensorValue) or
-          isinstance(tensor, tf.compat.v1.SparseTensorValue))
+  return isinstance(
+      tensor,
+      (
+          types.SparseTensorValue,
+          types.RaggedTensorValue,
+          tf.compat.v1.SparseTensorValue,
+      ),
+  )
 
 
 def to_numpy(tensor: Any) -> np.ndarray:
@@ -96,8 +101,7 @@ def to_tensor_values(tensors: Any) -> types.TensorValueMaybeMultiLevelDict:
 
 
 def is_tensorflow_tensor(obj):
-  return (isinstance(obj, tf.Tensor) or isinstance(obj, tf.SparseTensor) or
-          isinstance(obj, tf.RaggedTensor))
+  return isinstance(obj, (tf.Tensor, tf.SparseTensor, tf.RaggedTensor))
 
 
 def to_tensorflow_tensor(tensor_value: types.TensorValue) -> types.TensorType:
@@ -294,13 +298,10 @@ def include_filter(
     that did not match any values, then an empty dict will be returned for that
     key.
   """
-  if not include:
-    return target
-
-  return {
+  return ({
       key: include_filter(subkeys, target[key]) if subkeys else target[key]
       for key, subkeys in include.items() if key in target
-  }
+  } if include else target)
 
 
 def exclude_filter(
@@ -341,8 +342,8 @@ def merge_filters(
   """
   if (not isinstance(filter1, MutableMapping) or
       not isinstance(filter2, MutableMapping)):
-    raise ValueError('invalid filter, non-dict type used as a value: {}'.format(
-        [filter1, filter2]))
+    raise ValueError(
+        f'invalid filter, non-dict type used as a value: {[filter1, filter2]}')
   if not filter1:
     return filter1
   if not filter2:
@@ -440,13 +441,14 @@ def kwargs_only(fn):
     for arg_name, arg_has_default, arg_default_value in zip(
         arg_list, has_default, default_values):
       if not arg_has_default and arg_name not in kwargs:
-        raise TypeError('function %s must be called with %s specified' %
-                        (fn.__name__, arg_name))
+        raise TypeError(
+            f'function {fn.__name__} must be called with {arg_name} specified')
       kwargs_to_pass[arg_name] = kwargs.pop(arg_name, arg_default_value)
 
     if kwargs:
-      raise TypeError('function %s called with extraneous kwargs: %s' %
-                      (fn.__name__, kwargs.keys()))
+      raise TypeError(
+          f'function {fn.__name__} called with extraneous kwargs: {kwargs.keys()}'
+      )
 
     return fn(**kwargs_to_pass)
 

@@ -179,8 +179,8 @@ def _WriteEvalConfig(  # pylint: disable=invalid-name
 
   if output_file_format and output_file_format != EVAL_CONFIG_FILE_FORMAT:
     raise ValueError(
-        'only "{}" format is currently supported: output_file_format={}'.format(
-            EVAL_CONFIG_FILE_FORMAT, output_file_format))
+        f'only "{EVAL_CONFIG_FILE_FORMAT}" format is currently supported: output_file_format={output_file_format}'
+    )
 
   return (pipeline
           | 'CreateEvalConfig' >> beam.Create([

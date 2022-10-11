@@ -97,9 +97,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
 
   def _runTest(self, examples, eval_export_dir, metrics, expected_values_dict):
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertDictElementsAlmostEqual(value, expected_values_dict)
@@ -195,9 +195,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
     example_count_metric = post_export_metrics.example_count()
     example_weight_metric = post_export_metrics.example_weight('age')
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertIn(metric_keys.EXAMPLE_COUNT, value)
         count_values = value[metric_keys.EXAMPLE_COUNT]
@@ -292,9 +292,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
         'label/mean': 3.0 / 4.0,
     }
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertDictElementsAlmostEqual(value, expected_values_dict)
@@ -328,9 +328,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
         metric_keys.EXAMPLE_WEIGHT: 15.0,
     }
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertDictElementsAlmostEqual(value, expected_values_dict)
@@ -371,9 +371,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
         metric_keys.EXAMPLE_WEIGHT: 15.0,
     }
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertDictElementsAlmostEqual(value, expected_values_dict)
@@ -577,9 +577,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
     precision_metric = post_export_metrics.precision_at_k([0, 1, 2, 3, 5])
     recall_metric = post_export_metrics.recall_at_k([0, 1, 2, 3, 5])
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
 
@@ -595,8 +595,7 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
         recall_table = value[metric_keys.RECALL_AT_K]
         cutoffs = recall_table[:, 0].tolist()
         recall = recall_table[:, 1].tolist()
-        self.assertSequenceAlmostEqual(
-            recall, [4.0 / 4.0, 2.0 / 4.0, 2.0 / 4.0, 4.0 / 4.0, 4.0 / 4.0])
+        self.assertSequenceAlmostEqual(recall, [1.0, 2.0 / 4.0, 2.0 / 4.0, 1.0, 1.0])
 
         # Check serialization too.
         # Note that we can't just make this a dict, since proto maps
@@ -788,9 +787,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
     precision_metric = post_export_metrics.precision_at_k([0, 1])
     recall_metric = post_export_metrics.recall_at_k([0, 1])
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
 
@@ -806,7 +805,7 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
         cutoffs = recall_table[:, 0].tolist()
         recall = recall_table[:, 1].tolist()
         self.assertEqual(cutoffs, [0, 1])
-        self.assertSequenceAlmostEqual(recall, [2.0 / 2.0, 1.0 / 2.0])
+        self.assertSequenceAlmostEqual(recall, [1.0, 1.0 / 2.0])
       except AssertionError as err:
         raise util.BeamAssertException(err)
 
@@ -845,9 +844,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
     precision_metric = post_export_metrics.precision_at_k([0, 1, 2, 3, 5])
     recall_metric = post_export_metrics.recall_at_k([0, 1, 2, 3, 5])
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
 
@@ -871,9 +870,7 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
         cutoffs = recall_table[:, 0].tolist()
         recall = recall_table[:, 1].tolist()
         expected_cutoffs = [0, 1, 2, 3, 5]
-        expected_recall = [
-            4.0 / 4.0, 2.0 / 4.0, 2.0 / 4.0, 4.0 / 4.0, 4.0 / 4.0
-        ]
+        expected_recall = [1.0, 2.0 / 4.0, 2.0 / 4.0, 1.0, 1.0]
         self.assertSequenceAlmostEqual(
             [cutoff.unsampled_value for cutoff in cutoffs], expected_cutoffs)
         self.assertSequenceAlmostEqual([rec.unsampled_value for rec in recall],
@@ -963,9 +960,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
             fixed_int=0),
     ]
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertIn(metric_keys.PRECISION_AT_K, value)
@@ -980,7 +977,7 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
         cutoffs = table[:, 0].tolist()
         recall = table[:, 1].tolist()
         self.assertEqual(cutoffs, [1, 3])
-        self.assertSequenceAlmostEqual(recall, [3.0 / 7.0, 7.0 / 7.0])
+        self.assertSequenceAlmostEqual(recall, [3.0 / 7.0, 1.0])
       except AssertionError as err:
         raise util.BeamAssertException(err)
 
@@ -1010,9 +1007,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
             fixed_int=0),
     ]
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertIn(metric_keys.PRECISION_AT_K, value)
@@ -1055,9 +1052,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
     precision_metric = post_export_metrics.precision_at_k([0, 1])
     recall_metric = post_export_metrics.recall_at_k([0, 1])
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
 
@@ -1113,9 +1110,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
     calibration_plot = (
         post_export_metrics.calibration_plot_and_prediction_histogram())
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertIn(metric_keys.CALIBRATION_PLOT_MATRICES, value)
@@ -1187,9 +1184,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
     calibration_plot = (
         post_export_metrics.calibration_plot_and_prediction_histogram())
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertIn(metric_keys.CALIBRATION_PLOT_MATRICES, value)
@@ -1296,9 +1293,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
             fixed_int=0),
     ]
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertIn(metric_keys.CALIBRATION_PLOT_MATRICES, value)
@@ -1333,9 +1330,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
 
     auc_plots = post_export_metrics.auc_plots()
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertIn(metric_keys.AUC_PLOTS_MATRICES, value)
@@ -1353,8 +1350,7 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
                                        [1, 1, 1, 2, 2.0 / 3.0, 2.0 / 3.0])
         self.assertSequenceAlmostEqual(matrices[7001],
                                        [2, 1, 1, 1, 1.0 / 2.0, 1.0 / 3.0])
-        self.assertSequenceAlmostEqual(matrices[8001],
-                                       [2, 2, 0, 1, 1.0 / 1.0, 1.0 / 3.0])
+        self.assertSequenceAlmostEqual(matrices[8001], [2, 2, 0, 1, 1.0, 1.0 / 3.0])
         self.assertSequenceAlmostEqual(matrices[10001], [3, 2, 0, 0, 0, 0.0])
         self.assertIn(metric_keys.AUC_PLOTS_THRESHOLDS, value)
         thresholds = value[metric_keys.AUC_PLOTS_THRESHOLDS]
@@ -1452,9 +1448,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
 
     auc_plots = post_export_metrics.auc_plots()
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertIn(metric_keys.AUC_PLOTS_MATRICES, value)
@@ -1587,9 +1583,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
                                                         temp_eval_export_dir))
     examples = self.makeConfusionMatrixExamples()
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertIn(metric_keys.CONFUSION_MATRIX_AT_THRESHOLDS_MATRICES,
@@ -1635,9 +1631,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
                                                         temp_eval_export_dir))
     examples = self.makeConfusionMatrixExamples()
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertIn(metric_keys.CONFUSION_MATRIX_AT_THRESHOLDS_MATRICES,
@@ -1667,7 +1663,7 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
         self.assertAlmostEqual(0.7, thresholds[2].unsampled_value, places=5)
         self.assertAlmostEqual(0.8, thresholds[3].unsampled_value)
         self.assertAlmostEqual(1.0, thresholds[4].unsampled_value)
-        # Test serialization!
+            # Test serialization!
       except AssertionError as err:
         raise util.BeamAssertException(err)
 
@@ -1695,9 +1691,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
         post_export_metrics.confusion_matrix_at_thresholds(
             thresholds=[0.25, 0.75, 1.00]))
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertIn(metric_keys.CONFUSION_MATRIX_AT_THRESHOLDS_MATRICES,
@@ -1986,9 +1982,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
             other_label=0.0),
     ]
 
-    def check_plot_result(got):  # pylint: disable=invalid-name
+    def check_plot_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertIn(
@@ -2047,9 +2043,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
         self._makeExample(age=5.0, language='chinese', label=0.0)
     ]
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertIn(metric_keys.CALIBRATION_PLOT_MATRICES, value)
@@ -2181,9 +2177,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
 
     auc_metric = post_export_metrics.auc(curve='PR')
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertDictElementsAlmostEqual(value, expected_values_dict)
@@ -2663,9 +2659,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
         target_prediction_keys=['prediction'],
         metric_tag='abc')
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertDictElementsAlmostEqual(value, expected_values_dict)
@@ -2755,9 +2751,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
         metric_tag='abc')
     metric_key = metric_keys.tagged_key(metric_keys.MEAN_ABSOLUTE_ERROR, 'abc')
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
 
@@ -2829,9 +2825,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
         target_prediction_keys=['prediction'],
         metric_tag='abc')
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertDictElementsAlmostEqual(value, expected_values_dict)
@@ -2914,9 +2910,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
         metric_tag='abc')
     metric_key = metric_keys.tagged_key(metric_keys.MEAN_SQUARED_ERROR, 'abc')
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertIn(metric_key, value)
@@ -2995,9 +2991,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
         target_prediction_keys=['prediction'],
         metric_tag='abc')
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertDictElementsAlmostEqual(value, expected_values_dict)
@@ -3081,9 +3077,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
     metric_key = metric_keys.tagged_key(metric_keys.ROOT_MEAN_SQUARED_ERROR,
                                         'abc')
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
         self.assertIn(metric_key, value)
@@ -3154,9 +3150,9 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
     recall_metric = post_export_metrics.recall_at_k(
         [0, 1], target_prediction_keys=['output1'])
 
-    def check_result(got):  # pylint: disable=invalid-name
+    def check_result(got):# pylint: disable=invalid-name
       try:
-        self.assertEqual(1, len(got), 'got: %s' % got)
+        self.assertEqual(1, len(got), f'got: {got}')
         (slice_key, value) = got[0]
         self.assertEqual((), slice_key)
 
@@ -3175,7 +3171,7 @@ class PostExportMetricsTest(testutil.TensorflowModelAnalysisTest):
         cutoffs = recall_table[:, 0].tolist()
         recall = recall_table[:, 1].tolist()
         self.assertEqual(cutoffs, [0, 1])
-        self.assertSequenceAlmostEqual(recall, [2.0 / 2.0, 1.0 / 2.0])
+        self.assertSequenceAlmostEqual(recall, [1.0, 1.0 / 2.0])
 
       except AssertionError as err:
         raise util.BeamAssertException(err)

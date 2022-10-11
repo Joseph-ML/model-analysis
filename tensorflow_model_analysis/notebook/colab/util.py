@@ -39,7 +39,7 @@ def _create_handler_wrapper(event_handlers):
   Returns:
     The name of the js callback, safe to render as HTML or JS.
   """
-  trusted_name = 'tfma_eventCallback' + str(int(_create_handler_wrapper.count))
+  trusted_name = f'tfma_eventCallback{int(_create_handler_wrapper.count)}'
   _create_handler_wrapper.count += 1
 
   def wrapped_function(name='', detail=None):

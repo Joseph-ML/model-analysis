@@ -67,16 +67,12 @@ def _confusion_matrix_plot(
 
   # The interoploation strategy used here matches how the legacy post export
   # metrics calculated its plots.
-  thresholds = [i * 1.0 / num_thresholds for i in range(0, num_thresholds + 1)]
+  thresholds = [i * 1.0 / num_thresholds for i in range(num_thresholds + 1)]
   thresholds = [-1e-6] + thresholds
 
   # Make sure matrices are calculated.
   matrices_computations = binary_confusion_matrices.binary_confusion_matrices(
-      # Use a custom name since we have a custom interpolation strategy which
-      # will cause the default naming used by the binary confusion matrix to be
-      # very long.
-      name=(binary_confusion_matrices.BINARY_CONFUSION_MATRICES_NAME + '_' +
-            name),
+      name=f'{binary_confusion_matrices.BINARY_CONFUSION_MATRICES_NAME}_{name}',
       eval_config=eval_config,
       model_name=model_name,
       output_name=output_name,
@@ -85,7 +81,8 @@ def _confusion_matrix_plot(
       class_weights=class_weights,
       example_weighted=example_weighted,
       thresholds=thresholds,
-      use_histogram=True)
+      use_histogram=True,
+  )
   matrices_key = matrices_computations[-1].keys[-1]
 
   def result(

@@ -505,7 +505,7 @@ class MetricSpecsTest(tf.test.TestCase):
     self.assertLen(thresholds, len(expected_keys_and_threshold_counts))
     for key, count in expected_keys_and_threshold_counts.items():
       self.assertIn(key, thresholds)
-      self.assertLen(thresholds[key], count, 'failed for key {}'.format(key))
+      self.assertLen(thresholds[key], count, f'failed for key {key}')
 
   def testToComputations(self):
     computations = metric_specs.to_computations(

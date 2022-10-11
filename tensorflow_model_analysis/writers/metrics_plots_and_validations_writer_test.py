@@ -1887,7 +1887,7 @@ class MetricsPlotsAndValidationsWriterTest(testutil.TensorflowModelAnalysisTest,
     metric_records = list(
         metrics_plots_and_validations_writer.load_and_deserialize_metrics(
             metrics_file, output_file_format))
-    self.assertLen(metric_records, 1, 'metrics: %s' % metric_records)
+    self.assertLen(metric_records, 1, f'metrics: {metric_records}')
     self.assertProtoEquals(expected_metrics_for_slice, metric_records[0])
 
     expected_plots_for_slice = text_format.Parse(
@@ -1942,7 +1942,7 @@ class MetricsPlotsAndValidationsWriterTest(testutil.TensorflowModelAnalysisTest,
     plot_records = list(
         metrics_plots_and_validations_writer.load_and_deserialize_plots(
             plots_file, output_file_format))
-    self.assertLen(plot_records, 1, 'plots: %s' % plot_records)
+    self.assertLen(plot_records, 1, f'plots: {plot_records}')
     self.assertProtoEquals(expected_plots_for_slice, plot_records[0])
 
   @parameterized.named_parameters(('parquet_file_format', 'parquet'))
@@ -2049,7 +2049,7 @@ class MetricsPlotsAndValidationsWriterTest(testutil.TensorflowModelAnalysisTest,
     metric_records = list(
         metrics_plots_and_validations_writer.load_and_deserialize_metrics(
             metrics_file, output_file_format, slice_keys_filter))
-    self.assertLen(metric_records, 1, 'metrics: %s' % metric_records)
+    self.assertLen(metric_records, 1, f'metrics: {metric_records}')
     self.assertProtoEquals(expected_metrics_for_slice, metric_records[0])
 
     expected_plots_for_slice = text_format.Parse(
@@ -2109,7 +2109,7 @@ class MetricsPlotsAndValidationsWriterTest(testutil.TensorflowModelAnalysisTest,
     plot_records = list(
         metrics_plots_and_validations_writer.load_and_deserialize_plots(
             plots_file, output_file_format, slice_keys_filter))
-    self.assertLen(plot_records, 1, 'plots: %s' % plot_records)
+    self.assertLen(plot_records, 1, f'plots: {plot_records}')
     self.assertProtoEquals(expected_plots_for_slice, plot_records[0])
 
   @parameterized.named_parameters(_OUTPUT_FORMAT_PARAMS)

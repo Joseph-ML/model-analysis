@@ -85,14 +85,10 @@ def _DropUnsupportedColumnsAndFetchRawDataColumn(
                                        record_batch.columns):
     column_type = column_array.type
     if column_name == constants.ARROW_INPUT_COLUMN:
-      assert (_IsListLike(column_type) and
-              _IsBinaryLike(column_type.value_type)), (
-                  'Invalid type for batched input key: {}. '
-                  'Expected binary like.'.format(column_type))
+      assert _IsListLike(column_type) and _IsBinaryLike(
+          column_type.value_type
+      ), f'Invalid type for batched input key: {column_type}. Expected binary like.'
       serialized_examples = np.asarray(column_array.flatten())
-    # Currently we only handle columns of type list<primitive|binary_like>.
-    # We ignore other columns as we cannot efficiently convert them into an
-    # instance dict format.
     elif (_IsListLike(column_type) and
           _IsSupportedArrowValueType(column_type.value_type)):
       column_names.append(column_name)
@@ -117,7 +113,7 @@ def _ExtractFeatures(
   """
 
   def extract_features(  # pylint: disable=invalid-name
-      batched_extract: types.Extracts) -> types.Extracts:
+        batched_extract: types.Extracts) -> types.Extracts:
     """Extract features from extracts containing arrow table."""
     result = copy.copy(batched_extract)
     (record_batch, serialized_examples) = (
@@ -126,7 +122,7 @@ def _ExtractFeatures(
     # Special case: if record_batch contains 0 column, it will have 0 row, but
     # we want a list of empty dicts, of the same length as serialized_examples.
     if record_batch.num_columns == 0:
-      result[constants.FEATURES_KEY] = [dict() for _ in serialized_examples]
+      result[constants.FEATURES_KEY] = [{} for _ in serialized_examples]
     else:
       dataframe = record_batch.to_pandas()
       result[constants.FEATURES_KEY] = dataframe.to_dict(orient='records')

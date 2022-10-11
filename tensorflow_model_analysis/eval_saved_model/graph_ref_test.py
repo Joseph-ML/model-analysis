@@ -86,7 +86,7 @@ class GraphRefTest(tf.test.TestCase):
   def testGetNodeMapBasic(self):
     meta_graph_def = meta_graph_pb2.MetaGraphDef()
     meta_graph_def.collection_def[
-        'my_collection/%s' % encoding.KEY_SUFFIX].bytes_list.value[:] = map(
+        f'my_collection/{encoding.KEY_SUFFIX}'].bytes_list.value[:] = map(
             encoding.encode_key, ['alpha', 'bravo', 'charlie'])
     meta_graph_def.collection_def[
         'my_collection/fruits'].bytes_list.value[:] = [
@@ -116,7 +116,7 @@ class GraphRefTest(tf.test.TestCase):
   def testGetNodeMapMultiple(self):
     meta_graph_def = meta_graph_pb2.MetaGraphDef()
     meta_graph_def.collection_def[
-        'my_collection/%s' % encoding.KEY_SUFFIX].bytes_list.value[:] = map(
+        f'my_collection/{encoding.KEY_SUFFIX}'].bytes_list.value[:] = map(
             encoding.encode_key, ['alpha', 'bravo', 'charlie'])
     meta_graph_def.collection_def[
         'my_collection/fruits'].bytes_list.value[:] = [
@@ -157,7 +157,7 @@ class GraphRefTest(tf.test.TestCase):
 
       meta_graph_def = meta_graph_pb2.MetaGraphDef()
       meta_graph_def.collection_def[
-          'my_collection/%s' % encoding.KEY_SUFFIX].bytes_list.value[:] = map(
+          f'my_collection/{encoding.KEY_SUFFIX}'].bytes_list.value[:] = map(
               encoding.encode_key, ['alpha', 'bravo', 'charlie'])
 
       meta_graph_def.collection_def[

@@ -45,8 +45,7 @@ def _get_feature_value(fpl: query_types.FPL, key: str) -> float:
   """
   feature = fpl['features'].get(key)
   if feature is None:
-    raise ValueError('feature %s not found in features %s' %
-                     (key, fpl['features']))
+    raise ValueError(f"feature {key} not found in features {fpl['features']}")
   if feature.size != 1:
     raise ValueError('feature %s did not contain exactly 1 value. '
                      'value was: %s' % (key, feature))
@@ -66,21 +65,13 @@ class MinLabelPositionCombineFn(beam.CombineFn):
         Note that the weight value must be identical across all examples in the
         same query. If set to empty, uses 1.0 instead.
     """
-    if not label_key:
-      # If label_key is set to the empty string, the user is telling us
-      # that their Estimator returns a labels Tensor rather than a
-      # dictionary. Set the key to the magic key we use in that case.
-      self._label_key = eval_saved_model_util.default_dict_key(
-          eval_saved_model_constants.LABELS_NAME)
-    else:
-      self._label_key = label_key
+    self._label_key = label_key or eval_saved_model_util.default_dict_key(
+        eval_saved_model_constants.LABELS_NAME)
     self._weight_key = weight_key
 
   def _get_label(self, fpl: query_types.FPL) -> float:
     result = fpl['labels'].get(self._label_key)
-    if result is None:
-      return 0.0
-    return result
+    return 0.0 if result is None else result
 
   def create_accumulator(self):
     return _State(min_pos_sum=0.0, weight_sum=0.0)
@@ -125,8 +116,7 @@ class MinLabelPositionCombineFn(beam.CombineFn):
   def extract_output(self, accumulator: _State) -> Dict[str, Any]:
     if accumulator.weight_sum > 0:
       return {
-          metric_keys.base_key('average_min_label_position/%s' %
-                               self._label_key):
-              accumulator.min_pos_sum / accumulator.weight_sum
+          metric_keys.base_key(f'average_min_label_position/{self._label_key}'):
+          accumulator.min_pos_sum / accumulator.weight_sum
       }
     return {}

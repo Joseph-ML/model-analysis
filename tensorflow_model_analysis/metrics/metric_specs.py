@@ -77,8 +77,8 @@ def config_from_metric(
   elif isinstance(metric, metric_types.Metric):
     return _serialize_tfma_metric(metric)
   else:
-    raise NotImplementedError('unknown metric type {}: metric={}'.format(
-        type(metric), metric))
+    raise NotImplementedError(
+        f'unknown metric type {type(metric)}: metric={metric}')
 
 
 def _example_weighted_default(eval_config: config_pb2.EvalConfig,
@@ -202,9 +202,9 @@ def specs_from_metrics(
     output if a dict of metrics per output is passed.
   """
   if isinstance(metrics, dict) and output_names:
-    raise ValueError('metrics cannot be a dict when output_names is used: '
-                     'metrics={}, output_names={}'.format(
-                         metrics, output_names))
+    raise ValueError(
+        f'metrics cannot be a dict when output_names is used: metrics={metrics}, output_names={output_names}'
+    )
   if (metrics and unweighted_metrics and
       isinstance(metrics, dict) != isinstance(unweighted_metrics, dict)):
     raise ValueError(
@@ -213,11 +213,11 @@ def specs_from_metrics(
 
   if isinstance(metrics, dict) or isinstance(unweighted_metrics, dict):
     metrics_dict = metrics if isinstance(metrics, dict) else {}
-    unweighted_metrics_dict = (
-        unweighted_metrics if isinstance(unweighted_metrics, dict) else {})
-    specs = []
+    unweighted_metrics_dict = (unweighted_metrics if isinstance(
+        unweighted_metrics, dict) else {})
     output_names = set(metrics_dict.keys()).union(
         unweighted_metrics_dict.keys())
+    specs = []
     for output_name in sorted(output_names):
       specs.extend(
           specs_from_metrics(
@@ -493,8 +493,7 @@ def metric_instance(
       return _deserialize_tfma_metric(metric_config,
                                       {metric_config.class_name: cls})
     else:
-      raise NotImplementedError('unknown metric type {}: metric={}'.format(
-          cls, metric_config))
+      raise NotImplementedError(f'unknown metric type {cls}: metric={metric_config}')
 
 
 def _keys_for_metric(
@@ -507,14 +506,14 @@ def _keys_for_metric(
     for output_name in spec.output_names or ['']:
       for sub_key in sub_keys:
         for example_weighted in example_weights:
-          key = metric_types.MetricKey(
+          yield metric_types.MetricKey(
               name=metric_name,
               model_name=model_name,
               output_name=output_name,
               sub_key=sub_key,
               aggregation_type=aggregation_type,
-              example_weighted=example_weighted)
-          yield key
+              example_weighted=example_weighted,
+          )
 
 
 def keys_and_metrics_from_specs(
@@ -738,9 +737,8 @@ def to_computations(
         output_weights = dict(spec.output_weights)
         if not set(output_weights.keys()).issubset(output_names):
           raise ValueError(
-              'one or more output_names used in output_weights does not exist: '
-              'output_names={}, output_weights={}'.format(
-                  output_names, output_weights))
+              f'one or more output_names used in output_weights does not exist: output_names={output_names}, output_weights={output_weights}'
+          )
         for model_name in spec.model_names or ['']:
           for sub_key in sub_keys:
             for metric, _ in zip(per_spec_metric_instances[i],
@@ -859,9 +857,11 @@ def _process_tf_metrics_specs(
               instances = metrics
             for model_name in spec.model_names or ['']:
               unique_args = UniqueArgs(
-                  model_name, sub_key,
-                  aggregation_type if not is_macro else None,
-                  class_weights if not is_macro else ())
+                  model_name,
+                  sub_key,
+                  None if is_macro else aggregation_type,
+                  () if is_macro else class_weights,
+              )
               if unique_args not in metrics_by_unique_args:
                 # Tuple of weighted and unweighted metrics by output
                 metrics_by_unique_args[unique_args] = (
@@ -967,7 +967,7 @@ def _process_tfma_metrics_specs(
                 if key not in shared_sub_keys)
           if not updated_sub_keys:
             continue
-          aggregation_type = aggregation_type if not is_macro else None
+          aggregation_type = None if is_macro else aggregation_type
           class_weights = None
           sub_keys = updated_sub_keys
           instance = _private_tfma_metric(metric)
@@ -1036,15 +1036,14 @@ def _macro_average_sub_keys(
   if not sub_key:
     if not class_weights:
       raise ValueError(
-          'class_weights are required in order to compute macro average over '
-          'all classes: sub_key={}, class_weights={}'.format(
-              sub_key, class_weights))
+          f'class_weights are required in order to compute macro average over all classes: sub_key={sub_key}, class_weights={class_weights}'
+      )
     return [metric_types.SubKey(class_id=i) for i in class_weights]
   elif sub_key.top_k:
     return [metric_types.SubKey(k=i + 1) for i in range(sub_key.top_k)]
   else:
-    raise ValueError('invalid sub_key for performing macro averaging: '
-                     'sub_key={}'.format(sub_key))
+    raise ValueError(
+        f'invalid sub_key for performing macro averaging: sub_key={sub_key}')
 
 
 def _aggregation_type(
@@ -1063,8 +1062,8 @@ def _class_weights(spec: config_pb2.MetricsSpec) -> Optional[Dict[int, float]]:
   """Returns class weights associated with AggregationOptions at offset."""
   if spec.aggregate.HasField('top_k_list'):
     if spec.aggregate.class_weights:
-      raise ValueError('class_weights are not supported when top_k_list used: '
-                       'spec={}'.format(spec))
+      raise ValueError(
+          f'class_weights are not supported when top_k_list used: spec={spec}')
     return None
   return dict(spec.aggregate.class_weights) or None
 

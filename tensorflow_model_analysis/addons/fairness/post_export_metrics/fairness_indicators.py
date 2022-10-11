@@ -255,16 +255,15 @@ class _FairnessAuc(post_export_metrics._PostExportMetric):
 
     self._subgroup_key = subgroup_key
     self._example_weight_key = example_weight_key
-    self._curve = 'ROC'
     self._num_buckets = num_buckets
     self._metric_name = metric_keys.FAIRNESS_AUC
-    self._subgroup_auc_metric = self._metric_key(self._metric_name +
-                                                 '/subgroup_auc/' +
-                                                 self._subgroup_key)
+    self._curve = 'ROC'
+    self._subgroup_auc_metric = self._metric_key(
+        f'{self._metric_name}/subgroup_auc/{self._subgroup_key}')
     self._bpsn_auc_metric = self._metric_key(
         f'{self._metric_name}/bpsn_auc/{self._subgroup_key}')
-    self._bnsp_auc_metric = self._metric_key(self._metric_name + '/bnsp_auc/' +
-                                             self._subgroup_key)
+    self._bnsp_auc_metric = self._metric_key(
+        f'{self._metric_name}/bnsp_auc/{self._subgroup_key}')
 
     super().__init__(
         target_prediction_keys=target_prediction_keys,
@@ -324,11 +323,14 @@ class _FairnessAuc(post_export_metrics._PostExportMetric):
 
     ops_dict = {}
     # Add subgroup auc.
-    ops_dict.update(
-        post_export_metrics._build_auc_metrics_ops(
-            self._subgroup_auc_metric, labels, predictions,
-            tf.multiply(weights, tf.cast(subgroup, tf.float64)),
-            self._num_buckets + 1, self._curve))
+    ops_dict |= post_export_metrics._build_auc_metrics_ops(
+        self._subgroup_auc_metric,
+        labels,
+        predictions,
+        tf.multiply(weights, tf.cast(subgroup, tf.float64)),
+        self._num_buckets + 1,
+        self._curve,
+    )
     # Add backgroup positive subgroup negative auc.
     ops_dict.update(
         post_export_metrics._build_auc_metrics_ops(

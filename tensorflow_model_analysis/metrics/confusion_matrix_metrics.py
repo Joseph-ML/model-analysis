@@ -84,7 +84,7 @@ class AUCSummationMethod(enum.Enum):
 def _pos_sqrt(value: float) -> float:
   """Returns sqrt of value or raises ValueError if negative."""
   if value < 0:
-    raise ValueError('Attempt to take sqrt of negative value: {}'.format(value))
+    raise ValueError(f'Attempt to take sqrt of negative value: {value}')
   return math.sqrt(value)
 
 
@@ -1748,12 +1748,10 @@ class BalancedAccuracy(ConfusionMatrixMetric):
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     tpr_denominator = tp + fn
     tnr_denominator = tn + fp
-    if tpr_denominator > 0.0 and tnr_denominator > 0.0:
-      tpr = tp / tpr_denominator
-      tnr = tn / tnr_denominator
-      return (tpr + tnr) / 2
-    else:
+    if tpr_denominator <= 0.0 or tnr_denominator <= 0.0:
       return float('nan')
+    tpr = tp / tpr_denominator
+    return (tpr + tn / tnr_denominator) / 2
 
 
 metric_types.register_metric(BalancedAccuracy)
@@ -1830,10 +1828,7 @@ class MatthewsCorrelationCoefficient(ConfusionMatrixMetric):
 
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     denominator = _pos_sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
-    if denominator > 0.0:
-      return (tp * tn - fp * fn) / denominator
-    else:
-      return float('nan')
+    return (tp * tn - fp * fn) / denominator if denominator > 0.0 else float('nan')
 
 
 metric_types.register_metric(MatthewsCorrelationCoefficient)
@@ -1873,12 +1868,10 @@ class FowlkesMallowsIndex(ConfusionMatrixMetric):
     del tn
     ppv_denominator = tp + fp
     tpr_denominator = tp + fn
-    if ppv_denominator > 0.0 and tpr_denominator > 0.0:
-      ppv = tp / ppv_denominator
-      tnr = tp / tpr_denominator
-      return _pos_sqrt(ppv * tnr)
-    else:
+    if ppv_denominator <= 0.0 or tpr_denominator <= 0.0:
       return float('nan')
+    ppv = tp / ppv_denominator
+    return _pos_sqrt(ppv * (tp / tpr_denominator))
 
 
 metric_types.register_metric(FowlkesMallowsIndex)
@@ -1917,12 +1910,10 @@ class Informedness(ConfusionMatrixMetric):
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     positives = tp + fn
     negatives = tn + fp
-    if positives > 0.0 and negatives > 0.0:
-      tpr = tp / positives
-      tnr = tn / negatives
-      return tpr + tnr - 1
-    else:
+    if positives <= 0.0 or negatives <= 0.0:
       return float('nan')
+    tpr = tp / positives
+    return tpr + tn / negatives - 1
 
 
 metric_types.register_metric(Informedness)
@@ -1961,12 +1952,10 @@ class Markedness(ConfusionMatrixMetric):
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     ppv_denominator = tp + fp
     npv_denominator = tn + fn
-    if ppv_denominator > 0.0 and npv_denominator > 0.0:
-      ppv = tp / ppv_denominator
-      npv = tn / npv_denominator
-      return ppv + npv - 1
-    else:
+    if ppv_denominator <= 0.0 or npv_denominator <= 0.0:
       return float('nan')
+    ppv = tp / ppv_denominator
+    return ppv + tn / npv_denominator - 1
 
 
 metric_types.register_metric(Markedness)
@@ -2005,12 +1994,10 @@ class PositiveLikelihoodRatio(ConfusionMatrixMetric):
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     tpr_denominator = tp + fn
     fpr_denominator = fp + tn
-    if tpr_denominator > 0.0 and fpr_denominator > 0.0 and fp > 0.0:
-      tpr = tp / tpr_denominator
-      fpr = fp / fpr_denominator
-      return tpr / fpr
-    else:
+    if tpr_denominator <= 0.0 or fpr_denominator <= 0.0 or fp <= 0.0:
       return float('nan')
+    tpr = tp / tpr_denominator
+    return tpr / (fp / fpr_denominator)
 
 
 metric_types.register_metric(PositiveLikelihoodRatio)
@@ -2049,12 +2036,10 @@ class NegativeLikelihoodRatio(ConfusionMatrixMetric):
   def result(self, tp: float, tn: float, fp: float, fn: float) -> float:
     fnr_denominator = fn + tp
     tnr_denominator = tn + fp
-    if fnr_denominator > 0.0 and tnr_denominator > 0.0 and tn > 0.0:
-      fnr = fn / fnr_denominator
-      tnr = tn / tnr_denominator
-      return fnr / tnr
-    else:
+    if fnr_denominator <= 0.0 or tnr_denominator <= 0.0 or tn <= 0.0:
       return float('nan')
+    fnr = fn / fnr_denominator
+    return fnr / (tn / tnr_denominator)
 
 
 metric_types.register_metric(NegativeLikelihoodRatio)

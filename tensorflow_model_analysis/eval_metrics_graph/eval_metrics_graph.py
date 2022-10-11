@@ -177,7 +177,7 @@ class EvalMetricsGraph:  # pytype: disable=ignored-metaclass
           raise ValueError('metric keys should not conflict, but an '
                            'earlier callback already added the metrics '
                            'named %s' % overlap)
-        metric_ops.update(new_metric_ops)
+        metric_ops |= new_metric_ops
       self.register_additional_metric_ops(metric_ops)
 
   def graph_as_default(self):
@@ -309,8 +309,7 @@ class EvalMetricsGraph:  # pytype: disable=ignored-metaclass
 
     except (RuntimeError, TypeError, ValueError,
             tf.errors.OpError) as exception:
-      general_util.reraise_augmented(exception,
-                                     'raw_input = %s' % examples_list)
+      general_util.reraise_augmented(exception, f'raw_input = {examples_list}')
 
   def metrics_reset_update_get(
       self, features_predictions_labels: types.FeaturesPredictionsLabels

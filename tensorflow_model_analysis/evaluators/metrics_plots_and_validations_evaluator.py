@@ -163,8 +163,6 @@ def _filter_and_separate_computations(
       if c not in processed_non_derived_computations:
         processed_non_derived_computations[c] = len(non_derived_computations)
         non_derived_computations.append(c)
-    # CIDerivedMetricComputation is inherited from DerivedMetricComputation, so
-    # order of elif's matter here.
     elif isinstance(c, metric_types.CIDerivedMetricComputation):
       if c not in processed_ci_derived_computations:
         processed_ci_derived_computations[c] = len(ci_derived_computations)
@@ -178,7 +176,7 @@ def _filter_and_separate_computations(
         processed_cross_slice_computations[c] = len(cross_slice_computations)
         cross_slice_computations.append(c)
     else:
-      raise TypeError('Unsupported metric computation type: {}'.format(c))
+      raise TypeError(f'Unsupported metric computation type: {c}')
   return MetricComputations(
       non_derived_computations=non_derived_computations,
       derived_computations=derived_computations,
@@ -374,7 +372,7 @@ class _ComputationsCombineFn(beam.combiners.SingleInputTupleCombineFn):
   def extract_output(self, accumulator: Any) -> metric_types.MetricsDict:
     result = {}
     for c, a in zip(self._combiners, accumulator):
-      result.update(c.extract_output(a))
+      result |= c.extract_output(a)
     return result
 
 
@@ -475,9 +473,7 @@ def _AddCrossSliceMetrics(  # pylint: disable=invalid-name
             comparison_slices=beam.pvalue.AsIter(comparison_slices)))
 
   if cross_slice_outputs:
-    cross_slice_outputs = (
-        cross_slice_outputs
-        | 'FlattenCrossSliceResults' >> beam.Flatten())
+    cross_slice_outputs |= 'FlattenCrossSliceResults' >> beam.Flatten()
     return ([sliced_combiner_outputs, cross_slice_outputs]
             | 'CombineSingleSlicesWithCrossSlice' >> beam.Flatten())
   else:
@@ -617,8 +613,8 @@ def _get_confidence_interval_params(
           metrics_specs, eval_config=eval_config))
   num_jackknife_samples = 0
   num_bootstrap_samples = 0
-  ci_method = eval_config.options.confidence_intervals.method
   if eval_config.options.compute_confidence_intervals.value:
+    ci_method = eval_config.options.confidence_intervals.method
     if ci_method == config_pb2.ConfidenceIntervalOptions.JACKKNIFE:
       num_jackknife_samples = _DEFAULT_NUM_JACKKNIFE_BUCKETS
     elif ci_method == config_pb2.ConfidenceIntervalOptions.POISSON_BOOTSTRAP:
@@ -908,10 +904,8 @@ def _EvaluateMetricsPlotsAndValidations(  # pylint: disable=invalid-name
   for query_key, metrics_specs in metrics_specs_by_query_key.items():
     query_key_text = query_key or ''
     if query_key:
-      extracts_for_evaluation = (
-          extracts
-          | 'GroupByQueryKey({})'.format(query_key_text) >>
-          _GroupByQueryKey(query_key))
+      extracts_for_evaluation = extracts | (
+          f'GroupByQueryKey({query_key_text})' >> _GroupByQueryKey(query_key))
       include_default_metrics = False
     else:
       extracts_for_evaluation = extracts
@@ -919,10 +913,8 @@ def _EvaluateMetricsPlotsAndValidations(  # pylint: disable=invalid-name
           eval_config and
           (not eval_config.options.HasField('include_default_metrics') or
            eval_config.options.include_default_metrics.value))
-    evaluation = (
-        extracts_for_evaluation
-        | 'ComputeMetricsAndPlots({})'.format(query_key_text) >>
-        _ComputeMetricsAndPlots(
+    evaluation = extracts_for_evaluation | (
+        f'ComputeMetricsAndPlots({query_key_text})' >> _ComputeMetricsAndPlots(
             eval_config=eval_config,
             metrics_specs=metrics_specs,
             eval_shared_models=(eval_shared_models
@@ -932,7 +924,8 @@ def _EvaluateMetricsPlotsAndValidations(  # pylint: disable=invalid-name
             attributions_key=attributions_key,
             schema=schema,
             random_seed_for_testing=random_seed_for_testing,
-            tensor_adapter_config=tensor_adapter_config))
+            tensor_adapter_config=tensor_adapter_config,
+        ))
 
     for k, v in evaluation.items():
       if k not in evaluations:
@@ -953,4 +946,4 @@ def _get_model_types_for_logging(
   if eval_shared_models:
     return {model.model_type for (name, model) in eval_shared_models.items()}
   else:
-    return set([constants.MODEL_AGNOSTIC])
+    return {constants.MODEL_AGNOSTIC}

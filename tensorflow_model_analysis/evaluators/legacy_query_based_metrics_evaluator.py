@@ -72,14 +72,9 @@ class CreateQueryExamples(beam.CombineFn):
   """
 
   def __init__(self, prediction_key: str):
-    if not prediction_key:
-      # If prediction key is set to the empty string, the user is telling us
-      # that their Estimator returns a predictions Tensor rather than a
-      # dictionary. Set the key to the magic key we use in that case.
-      self._prediction_key = eval_saved_model_util.default_dict_key(
-          eval_saved_model_constants.PREDICTIONS_NAME)
-    else:
-      self._prediction_key = prediction_key
+    self._prediction_key = (prediction_key
+                            or eval_saved_model_util.default_dict_key(
+                                eval_saved_model_constants.PREDICTIONS_NAME))
 
   def create_accumulator(self):
     return []

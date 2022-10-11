@@ -43,8 +43,8 @@ class ExactMatch(metric_types.Metric):
         name=name,
         convert_to=convert_to)
     if convert_to and convert_to not in _CONVERT_TO_VALUES:
-      raise ValueError('convert_to can only be one of the following: %s' %
-                       str(convert_to))
+      raise ValueError(
+          f'convert_to can only be one of the following: {str(convert_to)}')
 
 
 metric_types.register_metric(ExactMatch)

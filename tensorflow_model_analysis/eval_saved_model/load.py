@@ -96,8 +96,7 @@ class EvalSavedModel(eval_metrics_graph.EvalMetricsGraph):
   def _check_version(self, version_node: types.TensorType):
     version = self._session.run(version_node)
     if not version:
-      raise ValueError('invalid TFMA version in graph (at path %s)' %
-                       self._path)
+      raise ValueError(f'invalid TFMA version in graph (at path {self._path})')
     # We don't actually do any checking for now, since we don't have any
     # compatibility issues.
 
@@ -106,8 +105,8 @@ class EvalSavedModel(eval_metrics_graph.EvalMetricsGraph):
     version = meta_graph_def.collection_def.get(
         encoding.TFMA_VERSION_COLLECTION)
     if version is None:
-      raise ValueError('could not find TFMA version in graph (at path %s)' %
-                       self._path)
+      raise ValueError(
+          f'could not find TFMA version in graph (at path {self._path})')
     # We don't actually do any checking for now, since we don't have any
     # compatibility issues.
 
@@ -164,12 +163,13 @@ class EvalSavedModel(eval_metrics_graph.EvalMetricsGraph):
       signature_def = meta_graph_def.signature_def.get(
           constants.DEFAULT_EVAL_SIGNATURE_DEF_KEY)
       if signature_def is None:
-        raise ValueError('could not find signature with name %s. signature_def '
-                         'was %s' % (constants.EVAL_TAG, signature_def))
+        raise ValueError(
+            f'could not find signature with name {constants.EVAL_TAG}. signature_def was {signature_def}'
+        )
 
-      self._additional_fetches_map = {}
       iterator_initializer = None
 
+      self._additional_fetches_map = {}
       # If features and labels are not stored in the signature_def.inputs then
       # only a single input will be present. We will use this as our flag to
       # indicate whether the features and labels should be read using the legacy
@@ -352,23 +352,22 @@ class EvalSavedModel(eval_metrics_graph.EvalMetricsGraph):
 
         if (not isinstance(input_refs, np.ndarray) or input_refs.ndim != 1 or
             not np.issubdtype(input_refs.dtype, np.integer)):
-          raise ValueError('input_refs should be an 1-D array of integers. '
-                           'input_refs was {}.'.format(input_refs))
+          raise ValueError(
+              f'input_refs should be an 1-D array of integers. input_refs was {input_refs}.'
+          )
 
         for group, tensors in split_fetches.items():
           for result_key, split_values in tensors.items():
             if len(split_values) != input_refs.shape[0]:
               raise ValueError(
-                  'input_refs should be batch-aligned with fetched values; '
-                  '{} key {} had {} slices but input_refs had batch size of '
-                  '{}'.format(group, result_key, len(split_values),
-                              input_refs.shape[0]))
+                  f'input_refs should be batch-aligned with fetched values; {group} key {result_key} had {len(split_values)} slices but input_refs had batch size of {input_refs.shape[0]}'
+              )
 
         for i, input_ref in enumerate(input_refs):
           if input_ref < 0 or input_ref >= len(inputs):
             raise ValueError(
-                'An index in input_refs is out of range: {} vs {}; '
-                'inputs: {}'.format(input_ref, len(inputs), inputs))
+                f'An index in input_refs is out of range: {input_ref} vs {len(inputs)}; inputs: {inputs}'
+            )
           values = {}
           for group, split_tensors in split_fetches.items():
             tensor_values = {

@@ -199,7 +199,7 @@ def top_k_indices(
     return np.arange(indices.shape[0]).repeat(top_k), indices.flatten()
   else:
     raise NotImplementedError(
-        'top_k not supported for shapes > 2: scores = {}'.format(scores))
+        f'top_k not supported for shapes > 2: scores = {scores}')
 
 
 def select_indices(
@@ -230,8 +230,9 @@ def select_indices(
     values = values.reshape(arr.shape[:-1] + (last_dim,))
     return values
   else:
-    raise NotImplementedError('select_indices not supported for shapes > 2: '
-                              'arr={}, indices={}'.format(arr, indices))
+    raise NotImplementedError(
+        f'select_indices not supported for shapes > 2: arr={arr}, indices={indices}'
+    )
 
 
 def to_label_prediction_example_weight(
@@ -563,14 +564,12 @@ def to_label_prediction_example_weight(
 
     for result in yield_results(label, prediction, example_weight):
       if fractional_labels and label.size:
-        for new_result in _yield_fractional_labels(*result):
-          yield new_result
+        yield from _yield_fractional_labels(*result)
       else:
         yield result
   except Exception as e:
     import sys  # pylint: disable=g-import-not-at-top
-    raise type(e)(str(e) + f'\n\n{fn_call_str()}').with_traceback(
-        sys.exc_info()[2])
+    raise type(e)(f'{str(e)}\n\n{fn_call_str()}').with_traceback(sys.exc_info()[2])
 
 
 def _yield_fractional_labels(

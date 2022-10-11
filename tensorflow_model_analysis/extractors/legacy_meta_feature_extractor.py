@@ -51,15 +51,14 @@ def _set_feature_value(features: types.DictOfFetchedTensorValues,
 
 def get_fpl_copy(extracts: types.Extracts) -> types.FeaturesPredictionsLabels:
   """Get a copy of the FPL in the extracts of extracts."""
-  fpl_orig = extracts.get(constants.FEATURES_PREDICTIONS_LABELS_KEY)
-  if not fpl_orig:
+  if fpl_orig := extracts.get(constants.FEATURES_PREDICTIONS_LABELS_KEY):
+    return types.FeaturesPredictionsLabels(
+        features=copy.copy(fpl_orig.features),
+        labels=fpl_orig.labels,
+        predictions=fpl_orig.predictions,
+        input_ref=fpl_orig.input_ref)
+  else:
     raise RuntimeError('FPL missing, Please ensure _Predict() was called.')
-
-  return types.FeaturesPredictionsLabels(
-      features=copy.copy(fpl_orig.features),
-      labels=fpl_orig.labels,
-      predictions=fpl_orig.predictions,
-      input_ref=fpl_orig.input_ref)
 
 
 def update_fpl_features(fpl: types.FeaturesPredictionsLabels,

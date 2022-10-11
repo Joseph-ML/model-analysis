@@ -222,9 +222,8 @@ class LatestExporter(tf.estimator.Exporter):
     def _export_version_parser(path):
       # create a simple parser that pulls the export_version from the directory.
       filename = os.path.basename(path.path)
-      if not (len(filename) == 10 and filename.isdigit()):
-        return None
-      return path._replace(export_version=int(filename))
+      return (path._replace(export_version=int(filename)) if
+              (len(filename) == 10 and filename.isdigit()) else None)
 
     # pylint: disable=protected-access
     keep_filter = gc._largest_export_versions(self._exports_to_keep)

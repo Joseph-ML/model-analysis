@@ -877,7 +877,7 @@ class NonConfusionMatrixMetricsTest(testutil.TensorflowModelAnalysisTest,
 
       def check_result(got):
         try:
-          self.assertLen(got, 1, 'got: %s' % got)
+          self.assertLen(got, 1, f'got: {got}')
           got_slice_key, got_metrics = got[0]
           self.assertEqual(got_slice_key, ())
 

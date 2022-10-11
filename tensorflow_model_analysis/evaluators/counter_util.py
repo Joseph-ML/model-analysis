@@ -24,7 +24,7 @@ from tensorflow_model_analysis.proto import config_pb2
 
 def _IncrementMetricsCounters(metric_name: str, version: str, model_type: str):
   # LINT.IfChange
-  metric_name = 'metric_computed_%s_%s_%s' % (metric_name, version, model_type)
+  metric_name = f'metric_computed_{metric_name}_{version}_{model_type}'
   # LINT.ThenChange(../../../../learning/fairness/infra/plx/scripts/tfma_metrics_computed_tracker_macros.sql)
   metrics_counter = beam.metrics.Metrics.counter(constants.METRICS_NAMESPACE,
                                                  metric_name)
@@ -51,16 +51,13 @@ def IncrementMetricsCallbacksCounters(
 
 
 @beam.ptransform_fn
-# TODO(b/148788775): These type hints fail Beam type checking.
-# @beam.typehints.with_input_types(beam.Pipeline)
-# @beam.typehints.with_output_types(beam.pvalue.PDone)
 def IncrementSliceSpecCounters(pipeline: beam.Pipeline):
   """To track count of all slicing spec computed using TFMA."""
 
   def _MakeAndIncrementCounters(slice_list):
     for slice_key, slice_value in slice_list:
       # LINT.IfChange
-      slice_name = 'slice_computed_%s_%s' % (slice_key, slice_value)
+      slice_name = f'slice_computed_{slice_key}_{slice_value}'
       # LINT.ThenChange(../../../../learning/fairness/infra/plx/scripts/tfma_metrics_computed_tracker_macros.sql)
       slice_counter = beam.metrics.Metrics.counter(constants.METRICS_NAMESPACE,
                                                    slice_name)

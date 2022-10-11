@@ -56,7 +56,10 @@ class TimeSeriesViewer(widgets.DOMWidget):
   _view_module_version = traitlets.Unicode(VERSION).tag(sync=True)
   _model_module_version = traitlets.Unicode(VERSION).tag(sync=True)
   data = traitlets.List([]).tag(sync=True)
-  config = traitlets.Dict(dict()).tag(sync=True)
+  config = traitlets.Dict({}).tag(sync=True)
+
+
+
 
 
 @widgets.register
@@ -69,4 +72,4 @@ class PlotViewer(widgets.DOMWidget):
   _view_module_version = traitlets.Unicode(VERSION).tag(sync=True)
   _model_module_version = traitlets.Unicode(VERSION).tag(sync=True)
   data = traitlets.Dict([]).tag(sync=True)
-  config = traitlets.Dict(dict()).tag(sync=True)
+  config = traitlets.Dict({}).tag(sync=True)

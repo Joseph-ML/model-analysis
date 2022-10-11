@@ -143,17 +143,17 @@ def flip_count(
     feature_keys.append(example_id_key)
 
   def extract_label_prediction_and_weight(
-      inputs: metric_types.StandardMetricInputs,
-      eval_config: Optional[config_pb2.EvalConfig] = None,
-      model_name: str = '',
-      output_name: str = '',
-      sub_key: Optional[metric_types.SubKey] = None,
-      aggregation_type: Optional[metric_types.AggregationType] = None,
-      class_weights: Optional[Dict[int, float]] = None,
-      example_weighted: bool = False,
-      fractional_labels: bool = False,
-      flatten: bool = True,
-  ) -> Iterator[Tuple[np.ndarray, np.ndarray, np.ndarray]]:
+        inputs: metric_types.StandardMetricInputs,
+        eval_config: Optional[config_pb2.EvalConfig] = None,
+        model_name: str = '',
+        output_name: str = '',
+        sub_key: Optional[metric_types.SubKey] = None,
+        aggregation_type: Optional[metric_types.AggregationType] = None,
+        class_weights: Optional[Dict[int, float]] = None,
+        example_weighted: bool = False,
+        fractional_labels: bool = False,
+        flatten: bool = True,
+    ) -> Iterator[Tuple[np.ndarray, np.ndarray, np.ndarray]]:
     """Yields label, prediction, and example weights to be used in calculations.
 
     This function is a customized metric_util.to_label_prediction_example_weight
@@ -200,15 +200,15 @@ def flip_count(
 
     if counterfactual_prediction_key not in inputs.features:
       raise ValueError(
-          '%s feature key not found (required for FlipCount metric)' %
-          counterfactual_prediction_key)
+          f'{counterfactual_prediction_key} feature key not found (required for FlipCount metric)'
+      )
 
     counterfactual_prediction = inputs.features[counterfactual_prediction_key]
 
     if counterfactual_prediction is None:
       raise ValueError(
-          '%s feature key is None (required for FlipCount metric)' %
-          counterfactual_prediction_key)
+          f'{counterfactual_prediction_key} feature key is None (required for FlipCount metric)'
+      )
 
     def get_by_keys(value: Any, keys: List[str]) -> Any:
       if isinstance(value, dict):
@@ -244,13 +244,12 @@ def flip_count(
 
     if prediction.size == 0:
       raise ValueError('prediction is empty (required for FlipCount metric)')
-    else:  # Always flatten
-      example_weight = np.array(
-          [float(example_weight) for i in range(prediction.shape[-1])])
-      for p, cfp, w in zip(prediction.flatten(),
-                           counterfactual_prediction.flatten(),
-                           example_weight.flatten()):
-        yield np.array([p]), np.array([cfp]), np.array([w])
+    example_weight = np.array(
+        [float(example_weight) for i in range(prediction.shape[-1])])
+    for p, cfp, w in zip(prediction.flatten(),
+                         counterfactual_prediction.flatten(),
+                         example_weight.flatten()):
+      yield np.array([p]), np.array([cfp]), np.array([w])
 
   # Setting fractional label to false, since prediction is being used as label
   # and it can be a non-binary value.

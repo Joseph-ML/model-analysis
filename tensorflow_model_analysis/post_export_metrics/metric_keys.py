@@ -25,7 +25,7 @@ DEFAULT_PREFIX = 'post_export_metrics'
 
 def base_key(suffix: str, prefix: Optional[str] = DEFAULT_PREFIX) -> str:
   """Creates a base key from a prefix and a suffix."""
-  return '%s/%s' % (prefix, suffix)
+  return f'{prefix}/{suffix}'
 
 
 def tagged_key(key: str, tag: str) -> str:
@@ -42,8 +42,8 @@ def tagged_key(key: str, tag: str) -> str:
   """
   parts = key.split('/')
   if len(parts) > 1:
-    return '%s/%s/%s' % (parts[0], tag, '/'.join(parts[1:]))
-  return '%s/%s' % (key, tag)
+    return f"{parts[0]}/{tag}/{'/'.join(parts[1:])}"
+  return f'{key}/{tag}'
 
 
 def upper_bound_key(key: str) -> str:

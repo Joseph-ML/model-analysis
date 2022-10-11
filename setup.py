@@ -16,6 +16,7 @@
 The widget is based on the template generated from jupyter-widget's
 widget-cookiecutter.
 """
+
 from distutils import log
 from distutils import spawn
 import os
@@ -72,7 +73,7 @@ build_js = os.environ.get('BUILD_JS') is not None
 
 log.set_verbosity(log.DEBUG)
 log.info('setup.py entered')
-log.info('$PATH=%s' % os.environ['PATH'])
+log.info(f"$PATH={os.environ['PATH']}")
 
 
 def generate_proto(source, require=True):
@@ -89,7 +90,7 @@ def generate_proto(source, require=True):
   if (not os.path.exists(output) or
       (os.path.exists(source) and
        os.path.getmtime(source) > os.path.getmtime(output))):
-    print('Generating %s...' % output)
+    print(f'Generating {output}...')
 
     if not os.path.exists(source):
       sys.stderr.write("Can't find required file: %s\n" % source)
@@ -135,6 +136,8 @@ class develop(_develop):  # pylint: disable=invalid-name
 def js_prerelease(command, strict=False):
   """Decorator for building minified js/css prior to another command."""
 
+
+
   class DecoratedCommand(command):
     """Decorated command."""
 
@@ -152,13 +155,14 @@ def js_prerelease(command, strict=False):
         if strict or missing:
           log.warn('rebuilding js and css failed')
           if missing:
-            log.error('missing files: %s' % missing)
+            log.error(f'missing files: {missing}')
           raise e
         else:
           log.warn('rebuilding js and css failed (not a problem)')
           log.warn(str(e))
       command.run(self)
       update_package_data(self.distribution)
+
 
   return DecoratedCommand
 
@@ -235,7 +239,7 @@ class NPM(Command):
 
     for t in self.targets:
       if not os.path.exists(t):
-        msg = 'Missing file: %s' % t
+        msg = f'Missing file: {t}'
         if not has_npm:
           msg += ('\nnpm is required to build a development version of a widget'
                   ' extension')

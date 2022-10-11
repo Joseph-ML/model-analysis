@@ -80,8 +80,7 @@ class PredictExtractorTest(testutil.TensorflowModelAnalysisTest,
             fpl = item[constants.FEATURES_PREDICTIONS_LABELS_KEY]
             # Verify fpl contains features, probabilities, and correct labels.
             blacklisted_features = set(features_blacklist or [])
-            expected_features = (
-                set(['language', 'age', 'label']) - blacklisted_features)
+            expected_features = {'language', 'age', 'label'} - blacklisted_features
             for feature in expected_features:
               self.assertIn(feature, fpl.features)
             for feature in blacklisted_features:

@@ -82,8 +82,7 @@ def _ndcg(gain_key: str,
       if all(sub_key.top_k != k for sub_key in sub_keys):
         sub_keys.append(metric_types.SubKey(top_k=k))
   if not sub_keys or any(sub_key.top_k is None for sub_key in sub_keys):
-    raise ValueError(
-        'top_k values are required to use NDCG metric: {}'.format(sub_keys))
+    raise ValueError(f'top_k values are required to use NDCG metric: {sub_keys}')
   computations = []
   for model_name in model_names or ['']:
     for output_name in output_names or ['']:
@@ -150,9 +149,8 @@ class _NDCGCombiner(beam.CombineFn):
     query = util.get_by_keys(element.features, [self._query_key]).flatten()
     if query.size == 0 or not np.all(query == query[0]):
       raise ValueError(
-          'missing query value or not all values are the same: value={}, '
-          'metric_keys={}, StandardMetricInputs={}'.format(
-              query, self._metric_keys, element))
+          f'missing query value or not all values are the same: value={query}, metric_keys={self._metric_keys}, StandardMetricInputs={element}'
+      )
     return query[0]
 
   def _to_gains_example_weight(
@@ -170,13 +168,9 @@ class _NDCGCombiner(beam.CombineFn):
             require_single_example_weight=True))  # pytype: disable=wrong-arg-types
     gains = util.get_by_keys(element.features, [self._gain_key])
     if gains.size != predictions.size:
-      raise ValueError('expected {} to be same size as predictions {} != {}: '
-                       'gains={}, metric_keys={}, '
-                       'StandardMetricInputs={}'.format(self._gain_key,
-                                                        gains.size,
-                                                        predictions.size, gains,
-                                                        self._metric_keys,
-                                                        element))
+      raise ValueError(
+          f'expected {self._gain_key} to be same size as predictions {gains.size} != {predictions.size}: gains={gains}, metric_keys={self._metric_keys}, StandardMetricInputs={element}'
+      )
     gains = gains.reshape(predictions.shape)
     # Ignore non-positive gains.
     if gains.max() <= 0:

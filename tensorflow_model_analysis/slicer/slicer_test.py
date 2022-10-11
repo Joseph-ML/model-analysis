@@ -79,8 +79,7 @@ class SlicerTest(testutil.TensorflowModelAnalysisTest, parameterized.TestCase):
 
   def assertSliceResult(self, name, features_dict, columns, features, expected):
     spec = slicer.SingleSliceSpec(columns=columns, features=features)
-    msg = 'Test case %s: slice on columns %s, features %s' % (name, columns,
-                                                              features)
+    msg = f'Test case {name}: slice on columns {columns}, features {features}'
     six.assertCountEqual(
         self, expected,
         slicer.get_slices_for_features_dicts([features_dict], None, [spec]),

@@ -436,7 +436,7 @@ class MetricsPlotsAndValidationsEvaluatorTest(
                        check_validations)
 
     metric_filter = beam.metrics.metric.MetricsFilter().with_name(
-        'metric_computed_ExampleCount_v2_' + constants.TF_KERAS)
+        f'metric_computed_ExampleCount_v2_{constants.TF_KERAS}')
     actual_metrics_count = pipeline.run().metrics().query(
         filter=metric_filter)['counters'][0].committed
     self.assertEqual(actual_metrics_count, 1)
